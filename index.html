@@ -530,6 +530,11 @@ input,button{font-size:16px} /* prevent iOS zoom */
   <div class="scanhead"><h2 class="disp" style="font-size:20px">📷 Scan barcode</h2><button class="switch" id="scanClose">Close ✕</button></div>
   <div id="scanBox"></div>
   <div class="muted" id="scanStatus" style="text-align:center;margin-top:12px">Point the camera at the barcode…</div>
+  <div class="scanwrap" id="scanManualWrap" style="margin-top:14px">
+    <div class="muted" style="text-align:center">Camera trouble? Type the barcode digits printed under the bars:</div>
+    <input type="text" inputmode="numeric" id="scanManual" class="scaninp" placeholder="e.g. 012000161155" maxlength="14" autocomplete="off">
+    <button class="bigbtn ghost" id="scanManualBtn" style="margin-top:8px">Use this barcode →</button>
+  </div>
   <div id="scanForm" class="hidden scanwrap">
     <div class="muted" id="scanCode"></div>
     <input type="text" id="scanName" placeholder="Product name (from the package)" class="scaninp" maxlength="60">
@@ -1377,34 +1382,107 @@ function renderDadFood(){
  drawChart();
 }
 let scanner=null,pendingCode=null;
+function scannerConfig(){
+ var fmts=[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39];
+ return {fps:10,
+  qrbox:function(vw,vh){var m=Math.min(vw,vh);var w=Math.max(160,Math.min(300,Math.floor(m*0.82)));return {width:w,height:Math.floor(w*0.6)};},
+  formatsToSupport:fmts,
+  experimentalFeatures:{useBarCodeDetectorIfSupported:true}};
+}
+function scannerError(err){
+ var name=(err&&(err.name||err.message))?String(err.name||err.message):String(err);
+ var msg;
+ if(/NotAllowed|Permission|denied/i.test(name)) msg="Camera permission is blocked. Allow the camera for this site in your browser settings, then reopen — or just type the barcode digits above.";
+ else if(/NotFound|OverconstrainedError|Requested device not found|no camera/i.test(name)) msg="No usable camera was found here. Type the barcode digits above instead.";
+ else if(/NotReadable|TrackStart|in use|Could not start video/i.test(name)) msg="The camera is busy in another app. Close other camera apps and reopen — or type the barcode above.";
+ else msg="Couldn't open the camera ("+name+"). Type the barcode digits above instead.";
+ $("scanStatus").textContent=msg;
+}
 function openScanner(){
  $("scanModal").classList.remove("hidden");
  $("scanForm").classList.add("hidden");$("scanName").value="";pendingCode=null;
- $("scanStatus").textContent="Point the camera at the barcode…";
- if(typeof Html5Qrcode==="undefined"){$("scanStatus").textContent="Scanner couldn't load — use the food search instead.";return;}
- try{
-  scanner=new Html5Qrcode("scanBox");
-  const fmts=[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.CODE_128];
-  scanner.start({facingMode:"environment"},{fps:10,qrbox:{width:260,height:150},formatsToSupport:fmts},onScanHit,()=>{})
-   .catch(()=>{$("scanStatus").textContent="Camera not available in this view. If you saved the app to your home screen or opened its link in a full browser tab, camera works there — otherwise use the food search.";});
- }catch(e){$("scanStatus").textContent="Camera unavailable — use the food search instead.";}
+ if($("scanManual"))$("scanManual").value="";
+ if(typeof Html5Qrcode==="undefined"){$("scanStatus").textContent="Scanner library didn't load (check your connection, then reopen). You can still type the barcode digits above.";return;}
+ if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){$("scanStatus").textContent="This browser can't open the camera. Type the barcode digits above instead.";return;}
+ try{ scanner=new Html5Qrcode("scanBox"); }
+ catch(e){ $("scanStatus").textContent="Scanner couldn't start — type the barcode digits above."; return; }
+ var cfg=scannerConfig();
+ $("scanStatus").textContent="Point the rear camera at the barcode…";
+ scanner.start({facingMode:{ideal:"environment"}},cfg,onScanHit,function(){})
+  .catch(function(){
+   // Fallback: some devices reject the environment constraint — pick a camera explicitly.
+   if(typeof Html5Qrcode.getCameras!=="function"){scannerError({name:"NotFoundError"});return;}
+   Html5Qrcode.getCameras().then(function(cams){
+    if(!cams||!cams.length){scannerError({name:"NotFoundError"});return;}
+    var rear=null,i;
+    for(i=0;i<cams.length;i++){if(/back|rear|environment/i.test(cams[i].label||"")){rear=cams[i];break;}}
+    if(!rear)rear=cams[cams.length-1];
+    scanner.start(rear.id,cfg,onScanHit,function(){}).catch(scannerError);
+   }).catch(scannerError);
+  });
+}
+function useManualBarcode(){
+ var raw=(($("scanManual")&&$("scanManual").value)||"").replace(/[^0-9]/g,"");
+ if(raw.length<6){toast("Type the barcode digits (at least 6)");return;}
+ onScanHit(raw);
 }
 function stopScanner(){
  if(scanner){const s=scanner;scanner=null;try{s.stop().then(()=>{try{s.clear();}catch(e){}}).catch(()=>{});}catch(e){}}
 }
 function closeScanner(){stopScanner();$("scanModal").classList.add("hidden");}
+function showTeachForm(code){
+ pendingCode=code;
+ $("scanCode").textContent="Barcode "+code;
+ $("scanForm").classList.remove("hidden");
+}
+function prefillTeach(info){
+ $("scanName").value=info.name||"";
+ $("scanCal").value=(info.cal!=null?info.cal:"");
+ $("scanProt").value=(info.prot!=null?info.prot:"");
+ $("scanSug").value=(info.sug!=null?info.sug:"");
+}
+// Free, no-key barcode -> nutrition lookup via Open Food Facts.
+function lookupBarcode(code){
+ var url="https://world.openfoodfacts.org/api/v2/product/"+encodeURIComponent(code)+".json?fields=product_name,brands,serving_size,nutriments";
+ return fetch(url,{headers:{"Accept":"application/json"}}).then(function(r){return r.json();}).then(function(d){
+  if(!d||d.status!==1||!d.product)return null;
+  var pr=d.product, n=pr.nutriments||{};
+  var name=(pr.product_name||"").trim();
+  var brand=((pr.brands||"").split(",")[0]||"").trim();
+  var full=(brand&&name.toLowerCase().indexOf(brand.toLowerCase())<0)?(brand+" "+name):name;
+  full=full.trim();
+  var perServing=(n["energy-kcal_serving"]!=null);
+  var cal=perServing?n["energy-kcal_serving"]:n["energy-kcal_100g"];
+  if(cal==null)return null;
+  var prot=perServing?n["proteins_serving"]:n["proteins_100g"];
+  var sug=perServing?n["sugars_serving"]:n["sugars_100g"];
+  if(!perServing&&full)full=full+" (per 100g)";
+  return {name:full||("Item "+code),cal:Math.round(cal),prot:Math.round(prot||0),sug:Math.round(sug||0)};
+ }).catch(function(){return null;});
+}
 function onScanHit(code){
  stopScanner();
- const known=(state.dad.barcodes||{})[code];
+ var known=(state.dad.barcodes||{})[code];
  if(known){
   addFoodEntry(known[0],known[1],known[2],known[3]||0,known[4]||"y",known[5]||"");
   closeScanner();
   return;
  }
- pendingCode=code;
- $("scanStatus").textContent="New product — teach it once and every future scan logs it instantly:";
- $("scanCode").textContent="Barcode "+code;
- $("scanForm").classList.remove("hidden");
+ // Not taught yet: try to auto-fill from the food database, else let them type it once.
+ showTeachForm(code);
+ prefillTeach({name:"",cal:"",prot:"",sug:""});
+ $("scanStatus").textContent="Looking up nutrition…";
+ lookupBarcode(code).then(function(info){
+  if($("scanForm").classList.contains("hidden"))return; // user moved on
+  if(info){
+   prefillTeach(info);
+   $("scanStatus").textContent="Found it — check the numbers and tap Save.";
+  }else{
+   $("scanStatus").textContent="Not in the database — type the label numbers once, then it's saved forever.";
+  }
+ }).catch(function(){
+  $("scanStatus").textContent="Couldn't reach the food database — type the label numbers once.";
+ });
 }
 function scanTeach(){
  const n=$("scanName").value.trim(),c=parseInt($("scanCal").value,10),p=parseInt($("scanProt").value,10)||0,s=parseInt($("scanSug").value,10)||0;
@@ -1492,6 +1570,7 @@ function renderDadPlan(){
 $("introIx").addEventListener("click",()=>{state.isaac.intro=true;scheduleSave();render();});
 $("introDx").addEventListener("click",()=>{state.dad.intro=true;scheduleSave();render();});
 $("scanClose").addEventListener("click",closeScanner);
+var _smb=$("scanManualBtn");if(_smb)_smb.addEventListener("click",useManualBarcode);
 $("scanAI").addEventListener("click",scanTeach);
 
 /* ============ BACKUP / RESTORE ============ */
