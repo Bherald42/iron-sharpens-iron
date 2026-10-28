@@ -412,6 +412,17 @@ input,button{font-size:16px} /* prevent iOS zoom */
       </div>
 
       <div class="card">
+        <div class="plan-head"><h2>🗣️ Coach Feedback</h2><span class="tag gold">plan adjusts</span></div>
+        <div class="muted" style="margin-top:4px">Tell your coach how it felt — the plan changes to match.</div>
+        <div class="muted" style="margin-top:8px;font-weight:800">How hard was it?</div>
+        <div class="scale" id="dFbDiff"></div>
+        <div class="scale" id="dFbFlags" style="margin-top:6px"></div>
+        <input type="text" id="dFbNote" class="scaninp" placeholder="Anything else? e.g. 'knee hurt', 'hated this', 'only had 20 min'" maxlength="160" autocomplete="off" style="margin-top:8px">
+        <button class="bigbtn" id="dFbSend" style="margin-top:8px">Send to coach</button>
+        <div class="muted" id="dFbEcho" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card">
         <div class="plan-head"><h2>🎬 Film Room</h2><span class="tag">weekly</span></div>
         <div class="muted" id="filmTopicD" style="margin-top:6px"></div>
         <div class="vtake" id="filmLookD"></div>
@@ -818,18 +829,27 @@ function dadPlan(dow,wk){
  ["Stretch hips + calves + back","5–8 min",""]]};
 }
 function dadPlanToday(){
- const wk=weekNum();let plan=dadPlan(new Date().getDay(),wk);
+ const dow=new Date().getDay();
+ const ew=Math.max(1,weekNum()+(Number(state.dad.lvl)||0));
+ let plan=dadPlan(dow,ew);
  const ye=state.dad.history[ydayKey()];
+ const fb=state.dad.fb||{};
  if(ye&&ye.sore===2){return{t:"Coach Swap · Active Recovery",tag:"🔁 Auto-adjusted",sub:"You flagged soreness yesterday — today flushes it out so you don't get hurt. The program resumes tomorrow.",d:[
   ["Easy bike or walk","20–30 min, truly easy","Recovery pace still burns fat and loosens you up."],
   ["Full-body mobility","10 min — hips, calves, back",""],
   ["Light core","1 round: 10 crunches, 20-sec plank",""]]};}
+ const key=DWEEK[dow];
  let tune="";
- if(ye&&ye.energy===1)tune="⚠️ You felt rough yesterday — cut volume ~30% today and keep it easy.";
- else if(ye&&ye.energy===3)tune="🔥 You were strong yesterday — push the hard efforts a notch harder today.";
+ if(fb.joints&&(key==="run"||key==="runtempo"||key==="longrun")){
+  plan={...plan,t:plan.t+" (joint-friendly)",d:plan.d.map(x=>(/run.?walk|tempo|steady/i.test(x[0])?["Bike or incline walk",x[1],"Joints flagged — same time, zero pounding."]:x))};
+  tune="🦵 Joints flagged — kept today low-impact.";
+ }
+ if(ye&&ye.energy===1)tune=(tune?tune+" ":"")+"⚠️ You felt rough yesterday — cut volume ~30% today and keep it easy.";
+ else if(ye&&ye.energy===3)tune=(tune?tune+" ":"")+"🔥 You were strong yesterday — push the hard efforts a notch today.";
  const w=state.dad.weights;
  if(w&&w.length>=3){const rr=w.slice(-3);const drop=rr[0].w-rr[rr.length-1].w;
   if(drop<=0.2)tune=(tune?tune+" ":"")+"📉 Scale's stalled — tighten the low-carb today (zero starch) and add 10 min easy cardio.";}
+ if(fb.time){plan={...plan,d:plan.d.slice(0,Math.min(3,plan.d.length))};tune=(tune?tune+" ":"")+"⏱️ Short on time — trimmed to the essentials.";}
  if(tune)plan={...plan,sub:"Today's tune-up: "+tune+" · "+plan.sub};
  return plan;
 }
@@ -953,6 +973,9 @@ function fix(s){
  d.calTarget=Number(d.calTarget)||2000;
  d.races=Array.isArray(d.races)?d.races:[];
  d.phase=Number(d.phase)||0;d.bestStreak=Number(d.bestStreak)||0;
+ d.lvl=Number(d.lvl)||0;
+ d.fb=d.fb&&typeof d.fb==="object"?d.fb:{joints:false,time:false,note:"",diff:"",ts:0};
+ d.fbLog=Array.isArray(d.fbLog)?d.fbLog:[];
  if(!s.start)s.start=todayKey();
  return s;
 }
@@ -1320,6 +1343,7 @@ function renderDadToday(){
  $("filmTopicD").textContent="This week: "+fd[0];$("filmLookD").textContent="👀 Look for: "+fd[1];$("filmLinkD").href=yt(fd[2]);
  const fdd=!!(state.dad.film&&state.dad.film.wk===wk&&state.dad.film.done);
  wire("filmBtnD",fdd,"Studied it","Film studied ✓",()=>{const was=!!(state.dad.film&&state.dad.film.wk===wk&&state.dad.film.done);state.dad.film={wk:wk,done:!was};scheduleSave();render();});
+ renderFeedback();
  renderCheckin("d",e);
 }
 function todayFood(){const k=todayKey();if(!state.dad.food[k])state.dad.food[k]=[];return state.dad.food[k];}
@@ -1559,6 +1583,24 @@ function drawChart(){
  const last=ws[ws.length-1];
  $("wNote").textContent=last?(last.w-170>0?(Math.round((last.w-170)*10)/10)+" lbs to go — every weigh-in is data, not judgment.":"GOAL WEIGHT. Legend."):"";
 }
+function applyDifficulty(v){
+ const fb=state.dad.fb||(state.dad.fb={joints:false,time:false,note:"",diff:"",ts:0});
+ fb.diff=v;
+ if(v==="easy"){state.dad.lvl=Math.min(8,(Number(state.dad.lvl)||0)+1);toast("Coach bumped it up 💪");}
+ else if(v==="hard"){state.dad.lvl=Math.max(-3,(Number(state.dad.lvl)||0)-1);toast("Coach eased it back a notch");}
+ else toast("Dialed in 👍");
+ scheduleSave();render();
+}
+function renderFeedback(){
+ const fb=state.dad.fb||(state.dad.fb={joints:false,time:false,note:"",diff:"",ts:0});
+ const DIFF=[["😴","Too easy","easy"],["👍","Just right","ok"],["🥵","Too hard","hard"]];
+ const dd=$("dFbDiff");if(dd){dd.innerHTML="";DIFF.forEach(a=>{const b=document.createElement("div");b.className="sc"+(fb.diff===a[2]?" on":"");b.innerHTML=a[0]+"<small>"+a[1]+"</small>";b.addEventListener("click",()=>applyDifficulty(a[2]));dd.appendChild(b);});}
+ const FL=[["🦵","Joints sore","joints"],["⏱️","Short on time","time"]];
+ const fl=$("dFbFlags");if(fl){fl.innerHTML="";FL.forEach(a=>{const b=document.createElement("div");b.className="sc"+(fb[a[2]]?" on":"");b.innerHTML=a[0]+"<small>"+a[1]+"</small>";b.addEventListener("click",()=>{fb[a[2]]=!fb[a[2]];scheduleSave();render();toast(fb[a[2]]?a[1]+" — plan adjusted":a[1]+" off");});fl.appendChild(b);});}
+ const echo=$("dFbEcho");
+ if(echo){const lvl=Number(state.dad.lvl)||0;
+  echo.textContent=(lvl!==0?("Intensity: "+(lvl>0?"+"+lvl:lvl)+" vs baseline. "):"")+(fb.note?("Last note: “"+fb.note+"”"):"Your notes go to Claude — I read them and fine-tune the plan.");}
+}
 function renderDadPlan(){
  const pl=$("pathList");pl.innerHTML="";
  PATH.forEach((p,i)=>{
@@ -1589,6 +1631,7 @@ $("introIx").addEventListener("click",()=>{state.isaac.intro=true;scheduleSave()
 $("introDx").addEventListener("click",()=>{state.dad.intro=true;scheduleSave();render();});
 $("scanClose").addEventListener("click",closeScanner);
 var _smb=$("scanManualBtn");if(_smb)_smb.addEventListener("click",useManualBarcode);
+var _fbs=$("dFbSend");if(_fbs)_fbs.addEventListener("click",function(){var el=$("dFbNote");var t=(el&&el.value||"").trim();var fb=state.dad.fb||(state.dad.fb={joints:false,time:false,note:"",diff:"",ts:0});fb.note=t;fb.ts=Date.now();state.dad.fbLog=([{t:t,at:new Date().toISOString(),diff:fb.diff||"",joints:!!fb.joints,time:!!fb.time}].concat(state.dad.fbLog||[])).slice(0,20);if(el)el.value="";scheduleSave();render();toast(t?"Coach got your note ✓":"Saved ✓");});
 $("scanAI").addEventListener("click",scanTeach);
 
 /* ============ BACKUP / RESTORE ============ */
