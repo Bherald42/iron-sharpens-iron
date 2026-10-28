@@ -950,7 +950,7 @@ function dadPlanToday(){
 
 const PATH=[["Start line","Move every day + low carb"],["First 10 lbs down","The hardest part is behind you"],["Halfway to 175","Clothes fit different, energy climbs"],["Hit 175 lbs","Goal weight — then carve the abs"],["Six-pack visible","A few lbs leaner — the abs show"],["Sub-3 Marathon 🐷","26.2 at the Flying Pig 4-Way · 2:59:59 goal"]];
 const RACES=[
-["Flying Pig 4-Way ⭐ your goal","Cincinnati · early May 2027 · Sat 5K 7am + 10K 9am, Sun full marathon","Challenge"],
+["Flying Pig 4-Way ⭐ your goal","Cincinnati · Sat May 1: 5K 7am + 10K 9am · Sun May 2: full marathon","Challenge"],
 ["Flying Pig Marathon & Half","Cincinnati · typically early May","Marathon / Half"],
 ["Queen Bee Half Marathon","Cincinnati · typically October","Half"],
 ["Hudepohl 14K/7K Brewery Run","Cincinnati · typically September","Tune-up"],
@@ -1165,7 +1165,7 @@ function renderProjection(){
  if(!$("pjRate"))return;
  var c=pjCalc();
  if($("pjRate").value!=String(c.rate))$("pjRate").value=c.rate;
- var race=new Date(2027,4,3);
+ var race=new Date(2027,4,2);
  $("pjDate").textContent=c.toGo>0?pjFmtDate(c.date):"at goal 🎉";
  $("pjSummary").textContent=c.toGo>0?(c.cur+" lb now → 175 is "+c.toGo+" lb away. At "+c.rate+" lb/week you’d hit 175 by about "+pjFmtDate(c.date)+" ("+c.weeks+" weeks)."):("You’re at 175 — maintain and chase the six-pack.");
  $("pjRateLbl").textContent="← slower · pace "+c.rate+" lb/week · faster →";
@@ -1787,7 +1787,7 @@ function renderFeedback(){
 }
 function pjMilestoneDate(i,cur,rate){
  if(i===0)return "now";
- if(i===5)return "early May 2027";
+ if(i===5)return "May 2, 2027";
  var target=(i===1)?cur-10:(i===2)?Math.round((cur+175)/2):(i===3)?175:168;
  var lbs=Math.round((cur-target)*10)/10;
  if(lbs<=0)return "reached \u2713";
