@@ -62,6 +62,8 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .idea .iname{font-weight:800;font-size:14.5px;line-height:1.35}
 .idea .imac{font-size:12.5px;color:var(--muted);margin-top:2px}
 .idea button{white-space:nowrap}
+.idea .pck{width:22px;height:22px;flex:0 0 auto;accent-color:var(--gold);cursor:pointer}
+.prepbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
 
 /* Header */
 .top{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 0}
@@ -530,8 +532,10 @@ input,button{font-size:16px} /* prevent iOS zoom */
 
       <div class="card">
         <div class="plan-head"><h2>🥙 Meal & Snack Ideas</h2><span class="tag gold" id="ideaMeal"></span></div>
-        <div class="muted" style="margin-top:4px">Low-carb and built around what you like. Tap <b>+ Log</b> to add it to today.</div>
+        <div class="muted" id="prepWeek" style="margin-top:6px"></div>
+        <div class="muted" style="margin-top:6px">Tap <b>+ Log</b> to eat it today, or <b>check the box</b> to add it to your meal-prep list.</div>
         <div id="ideaList"></div>
+        <div class="prepbar"><span class="muted" id="prepCount"></span><span><button class="mini" id="prepClear">Clear</button> &nbsp; <button class="mini" id="prepCopy">📋 Copy list</button></span></div>
       </div>
 
       <div class="card">
@@ -963,32 +967,32 @@ const RACES=[
 ];
 const MEALIDEAS={
 Breakfast:[
-["Veggie + mushroom omelet (3 eggs, feta)",320,24,2,"g","veg"],
-["Greek yogurt + berries + almonds",250,20,10,"g","fruit"],
-["Avocado + 2 eggs + salsa",300,16,2,"g","veg"],
-["Protein shake + a handful of almonds",300,32,4,"g",""]
+["Veggie + mushroom omelet (3 eggs, feta)",320,24,2,"g","veg","eggs, mushrooms, bell pepper, spinach, feta"],
+["Greek yogurt + berries + almonds",250,20,10,"g","fruit","Greek yogurt, mixed berries, almonds"],
+["Avocado + 2 eggs + salsa",300,16,2,"g","veg","eggs, avocado, salsa"],
+["Protein shake + a handful of almonds",300,32,4,"g","","protein powder, almond milk, almonds"]
 ],
 Lunch:[
-["Mediterranean chicken bowl (greens, olives, feta, cucumber, olive oil)",500,40,5,"g","veg"],
-["Grilled chicken wrap (low-carb tortilla + veggies)",430,35,3,"g","veg"],
-["Big salad + grilled chicken, olives + avocado",460,38,4,"g","veg"],
-["Mexican chicken bowl (lettuce, salsa, guac, cheese — skip the rice)",500,36,6,"g","veg"]
+["Mediterranean chicken bowl (greens, olives, feta, cucumber, olive oil)",500,40,5,"g","veg","chicken breast, mixed greens, olives, feta, cucumber, cherry tomatoes, olive oil"],
+["Grilled chicken wrap (low-carb tortilla + veggies)",430,35,3,"g","veg","chicken breast, low-carb tortillas, lettuce, tomato, cheese"],
+["Big salad + grilled chicken, olives + avocado",460,38,4,"g","veg","chicken breast, mixed greens, olives, avocado, salad dressing"],
+["Mexican chicken bowl (lettuce, salsa, guac, cheese \u2014 skip the rice)",500,36,6,"g","veg","chicken breast, romaine, salsa, guacamole, shredded cheese, lime"]
 ],
 Dinner:[
-["Grilled chicken + roasted mushrooms + salad",470,45,5,"g","veg"],
-["Baked salmon + roasted veggies",500,40,4,"g","veg"],
-["Chicken-stuffed peppers + side salad",420,34,8,"g","veg"],
-["Shrimp + zucchini noodles + salad",400,35,5,"g","veg"]
+["Grilled chicken + roasted mushrooms + salad",470,45,5,"g","veg","chicken breast, mushrooms, mixed greens, olive oil"],
+["Baked salmon + roasted veggies",500,40,4,"g","veg","salmon, broccoli, zucchini, olive oil"],
+["Chicken-stuffed peppers + side salad",420,34,8,"g","veg","ground chicken, bell peppers, onion, cheese, mixed greens"],
+["Shrimp + zucchini noodles + salad",400,35,5,"g","veg","shrimp, zucchini, garlic, olive oil, mixed greens"]
 ],
 Snacks:[
-["Olives (a handful)",70,0,0,"g",""],
-["Raw veggies + guac or hummus",150,4,4,"g","veg"],
-["Cheese + a few nuts",200,10,2,"g",""],
-["2 hard-boiled eggs",140,12,1,"g",""],
-["Apple + almond butter",200,6,16,"y","fruit"],
-["Berries + a handful of nuts",160,5,9,"g","fruit"],
-["Post-run: protein shake + banana",270,30,18,"y","fruit"],
-["Post-run: Greek yogurt + fruit + honey",260,18,24,"y","fruit"]
+["Olives (a handful)",70,0,0,"g","","olives"],
+["Raw veggies + guac or hummus",150,4,4,"g","veg","carrots, celery, bell peppers, guacamole, hummus"],
+["Cheese + a few nuts",200,10,2,"g","","cheese, mixed nuts"],
+["2 hard-boiled eggs",140,12,1,"g","","eggs"],
+["Apple + almond butter",200,6,16,"y","fruit","apples, almond butter"],
+["Berries + a handful of nuts",160,5,9,"g","fruit","mixed berries, mixed nuts"],
+["Post-run: protein shake + banana",270,30,18,"y","fruit","protein powder, bananas"],
+["Post-run: Greek yogurt + fruit + honey",260,18,24,"y","fruit","Greek yogurt, fruit, honey"]
 ]
 };
 const QUICKFOODS=[["Eggs (2)",140],["Chicken breast",280],["Protein shake",160],["Greek yogurt",120],["Banana",105],["Oatmeal bowl",300],["Turkey sandwich",350],["Rice + chicken bowl",550],["Salad + protein",400],["Slice of pizza",290]];
@@ -1096,6 +1100,7 @@ function fix(s){
  d.food=d.food&&typeof d.food==="object"?d.food:{};
  d.calTarget=Number(d.calTarget)||2000;
  d.goalRate=Number(d.goalRate)||1.5;
+ d.prepSel=Array.isArray(d.prepSel)?d.prepSel:[];
  d.races=Array.isArray(d.races)?d.races:[];
  d.phase=Number(d.phase)||0;d.bestStreak=Number(d.bestStreak)||0;
  d.lvl=Number(d.lvl)||0;
@@ -1521,19 +1526,52 @@ function addFoodEntry(name,cal,prot,sug,grade,tag){
  state.dad.recent=[[name,Math.round(cal),Math.round(prot||0),Math.round(sug||0),grade||"y",tag||""]].concat((state.dad.recent||[]).filter(r=>r[0]!==name)).slice(0,8);
  foodQ="";scheduleSave();renderDadFood();toast("Logged to "+curMeal+" ✓");
 }
+const WEEKPREP=[
+"Batch-cook 4–5 chicken breasts + a tray of roasted mushrooms. Pre-cut veggies for dip and boil 6 eggs for grab-and-go.",
+"Grill a batch of chicken + bake 2 salmon fillets. Wash and chop a big salad base. Portion olives and nuts into snack cups.",
+"Mediterranean bowl prep: cooked chicken, chopped greens, feta, olives, cucumber. Make a batch of guac and cut veggie sticks.",
+"Mexican prep: shredded chicken, salsa, guac, shredded cheese, romaine. Portion berries + nuts for the week’s snacks.",
+"Shrimp + zucchini nights x2, plus roasted veggies. Hard-boil eggs and pre-portion Greek yogurt cups with berries."
+];
+function prepCount(){var n=(state.dad.prepSel||[]).length;var e=$("prepCount");if(e)e.textContent=n?(n+" selected for prep"):"Check boxes to build your prep list";}
 function renderMealIdeas(){
  const box=$("ideaList");if(!box)return;
  if($("ideaMeal"))$("ideaMeal").textContent=curMeal;
+ if($("prepWeek"))$("prepWeek").textContent="\ud83e\uddfa This week\u2019s prep: "+WEEKPREP[(Math.max(1,weekNum())-1)%WEEKPREP.length];
+ var sel=state.dad.prepSel||(state.dad.prepSel=[]);
  const items=MEALIDEAS[curMeal]||[];
  box.innerHTML="";
  items.forEach(function(it){
   const el=document.createElement("div");el.className="idea";
-  el.innerHTML='<div class="itxt"><div class="iname"></div><div class="imac"></div></div><button class="mini">+ Log</button>';
+  el.innerHTML='<input type="checkbox" class="pck"><div class="itxt"><div class="iname"></div><div class="imac"></div></div><button class="mini">+ Log</button>';
   el.querySelector(".iname").textContent=it[0];
   el.querySelector(".imac").textContent="~"+it[1]+" cal \u00b7 "+it[2]+"g protein"+(it[3]?(" \u00b7 "+it[3]+"g sugar"):"");
+  var cb=el.querySelector(".pck");cb.checked=sel.indexOf(it[0])>=0;
+  cb.addEventListener("change",function(){var i=sel.indexOf(it[0]);if(cb.checked){if(i<0)sel.push(it[0]);}else if(i>=0)sel.splice(i,1);scheduleSave();prepCount();});
   el.querySelector("button").addEventListener("click",function(){addFoodEntry(it[0],it[1],it[2],it[3],it[4],it[5]);});
   box.appendChild(el);
  });
+ prepCount();
+}
+function buildPrepList(){
+ var sel=state.dad.prepSel||[];if(!sel.length)return "";
+ var cats=["Breakfast","Lunch","Dinner","Snacks"];var out=[];var groc={};
+ var stamp=new Date().toLocaleDateString(undefined,{month:"short",day:"numeric"});
+ out.push("Iron Sharpens Iron \u2014 Meal Prep (week of "+stamp+")");out.push("");
+ cats.forEach(function(c){
+  var picks=(MEALIDEAS[c]||[]).filter(function(it){return sel.indexOf(it[0])>=0;});
+  if(picks.length){out.push(c.toUpperCase());picks.forEach(function(it){out.push("\u2022 "+it[0]);(it[6]||"").split(",").forEach(function(g){g=g.trim();if(g)groc[g.toLowerCase()]=g;});});out.push("");}
+ });
+ var gl=Object.keys(groc).sort().map(function(k){return groc[k];});
+ if(gl.length){out.push("GROCERY LIST");out.push(gl.join(", "));}
+ return out.join("\n");
+}
+function copyPrepList(){
+ var txt=buildPrepList();
+ if(!txt){toast("Check a few items first");return;}
+ function ok(){toast("Copied \u2014 paste it to share \u2713");}
+ function fb(){try{var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();var g=document.execCommand("copy");ta.remove();if(g)ok();else window.prompt("Copy your meal-prep list:",txt);}catch(e){window.prompt("Copy your meal-prep list:",txt);}}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok).catch(fb);}else fb();
 }
 function renderDadFood(){
  const items=todayFood();
@@ -1833,6 +1871,8 @@ $("scanClose").addEventListener("click",closeScanner);
 var _smb=$("scanManualBtn");if(_smb)_smb.addEventListener("click",useManualBarcode);
 var _fbs=$("dFbSend");if(_fbs)_fbs.addEventListener("click",function(){var el=$("dFbNote");var t=(el&&el.value||"").trim();var fb=state.dad.fb||(state.dad.fb={joints:false,time:false,note:"",diff:"",ts:0});fb.note=t;fb.ts=Date.now();state.dad.fbLog=([{t:t,at:new Date().toISOString(),diff:fb.diff||"",joints:!!fb.joints,time:!!fb.time}].concat(state.dad.fbLog||[])).slice(0,20);if(el)el.value="";scheduleSave();render();toast(t?"Coach got your note ✓":"Saved ✓");});
 $("scanAI").addEventListener("click",scanTeach);
+var _pc=$("prepCopy");if(_pc)_pc.addEventListener("click",copyPrepList);
+var _pcl=$("prepClear");if(_pcl)_pcl.addEventListener("click",function(){state.dad.prepSel=[];scheduleSave();renderMealIdeas();toast("Prep list cleared");});
 
 /* ============ BACKUP / RESTORE ============ */
 function exportBackup(){
