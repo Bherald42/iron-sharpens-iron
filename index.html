@@ -70,6 +70,14 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .wday:last-child{border-bottom:none}
 .wday .wd-name{font-family:'Lilita One';color:var(--gold);width:44px;flex:0 0 auto}
 .wday .wd-meals{font-size:12.5px;color:var(--muted);line-height:1.5}
+.growchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.growchips button{border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:999px;padding:7px 12px;font-family:'Nunito';font-weight:800;font-size:13px;cursor:pointer}
+.growchips button.on{background:var(--gold);color:#2a2410;border-color:var(--gold)}
+.gcard{padding:12px 0;border-bottom:1px solid var(--line)}
+.gcard:last-child{border-bottom:none}
+.gcard .gt{font-family:'Lilita One';font-size:16px;color:var(--ink)}
+.gcard .gv{font-style:italic;color:var(--sky);margin-top:4px;line-height:1.5;font-size:14px}
+.gcard .gb{color:var(--muted);margin-top:4px;line-height:1.55;font-size:14px}
 
 /* Header */
 .top{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 0}
@@ -592,6 +600,19 @@ input,button{font-size:16px} /* prevent iOS zoom */
       </div>
     </section>
 
+    <section id="d-grow" class="hidden">
+      <div class="card" style="border-color:rgba(245,197,66,.5)">
+        <div class="plan-head"><h2>🌱 Grow Today</h2><span class="tag gold">daily</span></div>
+        <div class="muted" id="growFocus" style="margin-top:6px;line-height:1.6"></div>
+      </div>
+      <div class="card">
+        <h2>📚 Build the man</h2>
+        <div class="muted" style="margin-top:4px">Leader · speaker · businessman · father · closer to God.</div>
+        <div class="growchips" id="growChips"></div>
+        <div id="growList" style="margin-top:6px"></div>
+      </div>
+    </section>
+
     <section id="d-cal" class="hidden">
       <div class="card">
         <div class="plan-head"><h2>📅 Next 30 Days</h2><span class="tag">the grind</span></div>
@@ -1007,6 +1028,70 @@ Snacks:[
 ["Post-run: Greek yogurt + fruit + honey",260,18,24,"y","fruit","Greek yogurt, fruit, honey","3/4 cup Greek yogurt, 1/2 cup fruit, 1 tsp honey","Mix and eat after your run."]
 ]
 };
+const GROW={
+leadership:[
+["Listen more than you talk","People follow leaders who make them feel heard. Ask one more question before you give your opinion."],
+["Praise in public, correct in private","Public correction humiliates; private correction develops. Same for your team and your kids."],
+["Own mistakes out loud","\u2018That\u2019s on me, here\u2019s the fix\u2019 earns more trust than always being right."],
+["Decide, then adjust","A good decision today beats a perfect one next week. Decide, watch, correct."],
+["Set the standard yourself","Your team and your family do what you do, not what you say."],
+["Clarify the why","People give their best when they understand the purpose, not just the task."],
+["Protect your calm","The leader\u2019s mood is contagious. Steady beats loud."],
+["Develop people, don\u2019t just use them","Delegate the decision, not just the task \u2014 that\u2019s how people grow."],
+["Keep promises small and kept","Trust is a record of promises kept. Promise less, deliver every time."],
+["Lead yourself first","You can\u2019t lead others past where you\u2019ve led yourself. Win your morning."]
+],
+speaking:[
+["Open with a hook","Skip \u2018um, so, today I want to talk about\u2026\u2019 Start with a question, a story, or a bold line."],
+["One message per talk","If they remember one sentence, what should it be? Build everything around that."],
+["Pause instead of um","Silence feels longer to you than to them. A pause reads as confidence."],
+["Tell stories, not just facts","People forget stats; they remember stories. Wrap your point in a 30-second story."],
+["Slow down","Nervous speakers rush. Cut your pace 20% and let the key lines land."],
+["Eye contact, one person at a time","Hold a thought on one face, then move. It feels like a conversation, not a performance."],
+["End with a clear ask","Tell them exactly what to do next. A talk with no ask is just noise."],
+["Practice out loud","Rehearse standing, out loud, 3x. Your mouth needs the reps, not your eyes."],
+["Breathe low before you start","Three slow belly breaths drop the shake and steady your voice."],
+["Record yourself","Watch one talk back. You\u2019ll fix more in 10 minutes than in a month of guessing."]
+],
+business:[
+["Profit vs revenue","Revenue is what comes in; profit is what you keep. Watch the keep."],
+["Cash flow is king","A profitable business can still go broke if cash runs out. Track money in vs out weekly."],
+["Price on value, not hours","Charge for the problem you solve, not the time you spend."],
+["Give every dollar a job","Budget: income minus fixed costs, save first, spend what\u2019s left."],
+["Solve one problem well","A business that nails one real problem beats one that does ten things okay."],
+["Read a P&L","Sales at the top, costs in the middle, profit at the bottom. Know all three."],
+["Reputation compounds","Do right when it\u2019s expensive. Trust is the cheapest marketing there is."],
+["Measure what matters","Pick 2\u20133 numbers that actually move the business and watch them weekly."],
+["Reinvest early profits","First profits buy growth, not toys. Delay gratification, build the engine."],
+["Network by giving first","Help before you ask. Relationships compound like interest."]
+],
+father:[
+["Presence over presents","Your attention is the gift they remember. Phone down, eyes up."],
+["Catch them doing right","Praise the effort and character you want more of. What gets noticed gets repeated."],
+["Let them struggle a little","Rescuing too fast robs them of confidence. Coach, don\u2019t carry."],
+["Apologize to your kids","Saying \u2018I was wrong, I\u2019m sorry\u2019 teaches them that humility is strength."],
+["Your marriage is their blueprint","How you treat their mom is the standard they\u2019ll carry. Model it."],
+["Rituals beat lectures","A weekly one-on-one or a bedtime talk builds more than a big speech ever will."],
+["Be the calm in their storm","Your steadiness teaches them to regulate theirs."],
+["Tell them who they are","Kids live up to the identity you speak over them. Name their strengths."],
+["Do hard things together","Shared effort \u2014 a workout, a project \u2014 bonds deeper than shared fun."],
+["Pray with them, not just for them","Let them hear you talk to God. Faith is caught as much as taught."]
+],
+faith:[
+["Proverbs 3:5-6","Trust in the LORD with all thine heart; and lean not unto thine own understanding. In all thy ways acknowledge him, and he shall direct thy paths.","Bring God your plans before your problems. Direction comes from surrender, not just effort."],
+["Philippians 4:13","I can do all things through Christ which strengtheneth me.","Your strength has a source. Lean on it when the work gets heavy."],
+["Micah 6:8","...do justly, and to love mercy, and to walk humbly with thy God.","A full life in one line: do right, be kind, stay humble."],
+["Joshua 1:9","Be strong and of a good courage; be not afraid... for the LORD thy God is with thee.","Courage isn\u2019t the absence of fear; it\u2019s moving forward knowing you\u2019re not alone."],
+["Colossians 3:23","And whatsoever ye do, do it heartily, as to the Lord, and not unto men.","Work like God is watching, because He is. Excellence is worship."],
+["Proverbs 27:17","Iron sharpeneth iron; so a man sharpeneth the countenance of his friend.","Surround yourself with people who make you sharper \u2014 and be that friend too."],
+["James 1:19","...let every man be swift to hear, slow to speak, slow to wrath.","A better leader, husband, and father in one verse: listen fast, speak slow, anger slower."],
+["Galatians 6:9","And let us not be weary in well doing: for in due season we shall reap, if we faint not.","The harvest comes to those who don\u2019t quit. Keep sowing."],
+["Matthew 6:33","But seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you.","Put God first and the rest finds its order. Priorities before productivity."],
+["Psalm 1:1-3","...his delight is in the law of the LORD... he shall be like a tree planted by the rivers of water.","Roots determine fruit. Feed your soul daily and you\u2019ll stand through dry seasons."]
+]
+};
+const GROWCATS=[["leadership","🧭 Leadership"],["speaking","🎤 Speaking"],["business","💼 Business"],["father","👨‍👦 Father"],["faith","✝️ Faith"]];
+var growCat="leadership";
 const QUICKFOODS=[["Eggs (2)",140],["Chicken breast",280],["Protein shake",160],["Greek yogurt",120],["Banana",105],["Oatmeal bowl",300],["Turkey sandwich",350],["Rice + chicken bowl",550],["Salad + protein",400],["Slice of pizza",290]];
 
 const COACHD=[
@@ -1148,7 +1233,7 @@ function addAura(n,msg){state.isaac.aura=Math.max(0,state.isaac.aura+n);if(n>0&&
 function checkTrophies(){for(const[id,ico,name,fn]of TROPHIES){if(!state.isaac.trophies.includes(id)&&fn(state.isaac)){state.isaac.trophies.push(id);setTimeout(()=>toast("🏆 "+name+" unlocked!"),600);}}}
 
 /* ============ NAV / PROFILE ============ */
-const NAVS={isaac:[["today","💪","Today"],["goals","🎯","Goals"],["cal","📅","Month"],["trophies","🏆","Trophies"]],dad:[["today","💪","Today"],["food","🍽️","Fuel"],["cal","📅","Month"],["plan","🛣️","Plan"]]};
+const NAVS={isaac:[["today","💪","Today"],["goals","🎯","Goals"],["cal","📅","Month"],["trophies","🏆","Trophies"]],dad:[["today","💪","Today"],["food","🍽️","Fuel"],["cal","📅","Month"],["plan","🛣️","Plan"],["grow","🌱","Grow"]]};
 let tab="today";
 function setProfile(p){profile=p;tab="today";$("picker").classList.add("hidden");lsSave();render();window.scrollTo(0,0);}
 $("pickIsaac").addEventListener("click",()=>setProfile("isaac"));
@@ -1462,7 +1547,7 @@ function renderTrophies(){
 
 /* ============ DAD ============ */
 function renderDad(){
- ["today","food","cal","plan"].forEach(t=>$("d-"+t).classList.toggle("hidden",t!==tab));
+ ["today","food","cal","plan","grow"].forEach(t=>$("d-"+t).classList.toggle("hidden",t!==tab));
  const ws=state.dad.weights;const last=ws[ws.length-1];
  $("dWeight").textContent=last?last.w:"—";
  $("dLost").textContent=Math.max(0,Math.round((227-(last?last.w:227))*10)/10);
@@ -1471,6 +1556,7 @@ function renderDad(){
  if(tab==="today")renderDadToday();
  if(tab==="food")renderDadFood();
  if(tab==="plan")renderDadPlan();
+ if(tab==="grow")renderDadGrow();
  if(tab==="cal")renderCal("dad");
 }
 function renderDadToday(){
@@ -1848,6 +1934,19 @@ function pjMilestoneDate(i,cur,rate){
  if(lbs<=0)return "reached \u2713";
  var weeks=Math.ceil(lbs/rate);
  return pjFmtDate(new Date(Date.now()+weeks*7*86400000));
+}
+function renderDadGrow(){
+ var flat=[];Object.keys(GROW).forEach(function(c){GROW[c].forEach(function(it){flat.push([c,it]);});});
+ var pick=flat[doy()%flat.length];var cat=pick[0],it=pick[1];
+ var lbl=(GROWCATS.find(function(g){return g[0]===cat;})||["",""])[1];
+ var fe=$("growFocus");
+ if(fe){if(cat==="faith")fe.innerHTML="<b style=\"color:var(--gold)\">"+lbl+" \u00b7 "+it[0]+"</b><br>\u201c"+it[1]+"\u201d<br><span style=\"color:var(--muted)\">\ud83d\udca1 "+it[2]+"</span>";
+  else fe.innerHTML="<b style=\"color:var(--gold)\">"+lbl+" \u00b7 "+it[0]+"</b><br><span style=\"color:var(--muted)\">"+it[1]+"</span>";}
+ var ch=$("growChips");if(ch){ch.innerHTML="";GROWCATS.forEach(function(g){var b=document.createElement("button");b.className=(growCat===g[0]?"on":"");b.textContent=g[1];b.addEventListener("click",function(){growCat=g[0];renderDadGrow();});ch.appendChild(b);});}
+ var box=$("growList");if(box){box.innerHTML="";(GROW[growCat]||[]).forEach(function(it){var el=document.createElement("div");el.className="gcard";
+  if(growCat==="faith"){el.innerHTML='<div class="gt"></div><div class="gv"></div><div class="gb"></div>';el.querySelector(".gt").textContent=it[0];el.querySelector(".gv").textContent="\u201c"+it[1]+"\u201d";el.querySelector(".gb").textContent="\ud83d\udca1 "+it[2];}
+  else{el.innerHTML='<div class="gt"></div><div class="gb"></div>';el.querySelector(".gt").textContent=it[0];el.querySelector(".gb").textContent=it[1];}
+  box.appendChild(el);});}
 }
 function renderDadPlan(){
  renderProjection();
