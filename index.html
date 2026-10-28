@@ -84,6 +84,8 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .fcard .gv{font-style:italic;color:var(--sky);margin-top:4px;line-height:1.5;font-size:14px}
 .fcard .gb{color:var(--muted);margin-top:4px;line-height:1.55;font-size:14px}
 .fcard .badges{margin-top:8px}
+.fcard .nmeta{font-size:11px;color:var(--orange);font-weight:800;margin-bottom:6px}
+.fcard .nimg{width:100%;border-radius:10px;margin-top:8px;display:block}
 
 /* Header */
 .top{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 0}
@@ -613,7 +615,7 @@ input,button{font-size:16px} /* prevent iOS zoom */
       </div>
       <div class="card">
         <div class="plan-head"><h2>📚 Learning Feed</h2><span class="tag">keep scrolling</span></div>
-        <div class="muted" style="margin-top:4px">Scroll to learn instead of scrolling shorts — lessons, videos and podcast clips on leadership, speaking, business, fatherhood, faith, tech, AI and investing. Fresh every time.</div>
+        <div class="muted" style="margin-top:4px">Scroll to learn instead of scrolling shorts. Growth lessons + live, source-diverse news: 📍 Local · 🇺🇸 US · 🌍 World · 🛠️ Tools · 🎥 Videos. Tap a chip; every story shows its source so you can judge for yourself.</div>
         <div class="growchips" id="growChips"></div>
         <div id="growList" style="margin-top:6px"></div>
         <button class="bigbtn ghost" id="growMore" style="margin-top:12px">Load more ↓</button>
@@ -1147,7 +1149,7 @@ const GROWMEDIA=[
 ["investing","watch","Investing basics in 10 minutes","investing for beginners explained"],
 ["investing","listen","Personal finance podcast","personal finance podcast clips"]
 ];
-const FEEDCATS=[["all","🔥 For You"]].concat(GROWCATS);
+const FEEDCATS=[["all","🔥 For You"],["n_local","📍 Local"],["n_us","🇺🇸 US"],["n_world","🌍 World"],["n_tools","🛠️ Tools"],["n_videos","🎥 Videos"]].concat(GROWCATS);
 const QUICKFOODS=[["Eggs (2)",140],["Chicken breast",280],["Protein shake",160],["Greek yogurt",120],["Banana",105],["Oatmeal bowl",300],["Turkey sandwich",350],["Rice + chicken bowl",550],["Salad + protein",400],["Slice of pizza",290]];
 
 const COACHD=[
@@ -2016,8 +2018,41 @@ function feedCard(it){
  }
  return el;
 }
+var newsData=null,newsLoading=false;
+function newsMapCat(fc){return {n_local:"local",n_us:"us",n_world:"world",n_tools:"tech",n_videos:"videos"}[fc];}
+function fetchNews(cb){
+ if(newsData){cb();return;}
+ if(newsLoading){return;}
+ newsLoading=true;
+ fetch("feed.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).then(function(d){newsData=(d&&d.items)||[];newsLoading=false;cb();}).catch(function(){newsData=[];newsLoading=false;cb();});
+}
+function relTime(iso){try{var d=new Date(iso);var sec=(Date.now()-d.getTime())/1000;if(sec<3600)return Math.max(1,Math.round(sec/60))+"m ago";if(sec<86400)return Math.round(sec/3600)+"h ago";return Math.round(sec/86400)+"d ago";}catch(e){return "";}}
+function newsCard(it){
+ var el=document.createElement("div");el.className="fcard";
+ var meta=(it.source||"")+(it.date?("  \u00b7  "+relTime(it.date)):"");
+ el.innerHTML='<div class="nmeta"></div><div class="gt"></div>'+(it.image?'<img class="nimg" loading="lazy">':'')+'<div class="badges"></div>';
+ el.querySelector(".nmeta").textContent=(it.kind==="video"?"\ud83c\udfa5 ":"\ud83d\udcf0 ")+meta;
+ el.querySelector(".gt").textContent=it.title;
+ if(it.image){var im=el.querySelector(".nimg");im.src=it.image;im.alt="";im.onerror=function(){im.style.display="none";};}
+ var a=document.createElement("a");a.className="mini vid";a.target="_blank";a.rel="noopener";a.href=it.link;a.textContent=(it.kind==="video"?"\u25b6 Watch":"Read \u2192");
+ el.querySelector(".badges").appendChild(a);
+ return el;
+}
 function renderFeed(){
  var box=$("growList");if(!box)return;
+ if(feedCat.indexOf("n_")===0){
+  var mapped=newsMapCat(feedCat);
+  fetchNews(function(){
+   if(feedCat.indexOf("n_")!==0)return;
+   box.innerHTML="";
+   var items=(newsData||[]).filter(function(x){return x.category===mapped;});
+   if(feedCat==="n_videos"&&!items.length){var media=GROWMEDIA.map(function(m){return {type:m[1],cat:m[0],title:m[2],query:m[3]};});var sm=Math.min(feedCount,media.length);for(var j=0;j<sm;j++)box.appendChild(feedCard(media[j]));return;}
+   if(!items.length){var e=document.createElement("div");e.className="muted";e.style.padding="12px 0";e.textContent=(newsData&&newsData.length)?"Nothing here right now \u2014 check back soon.":"\ud83d\udcf0 News is loading or still being built \u2014 it refreshes every few hours. Check back shortly.";box.appendChild(e);return;}
+   var show=Math.min(feedCount,items.length);
+   for(var i=0;i<show;i++)box.appendChild(newsCard(items[i]));
+  });
+  return;
+ }
  if(!feedPool.length)feedPool=gshuffle(feedItems(feedCat));
  while(feedCount>feedPool.length)feedPool=feedPool.concat(gshuffle(feedItems(feedCat)));
  box.innerHTML="";var show=Math.min(feedCount,feedPool.length);
