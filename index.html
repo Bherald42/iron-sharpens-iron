@@ -53,6 +53,9 @@ a{color:var(--sky)}
 .launchbox .lb-skill{font-family:'Lilita One';font-size:18px;margin-top:6px;color:var(--ink)}
 .launchbox .lb-skill-lesson{font-size:14px;color:var(--muted);line-height:1.5;margin-top:4px}
 .launchbox .lb-actions{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:999px;background:var(--panel2);outline:none;border:1px solid var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;border-radius:50%;background:var(--gold);cursor:pointer;border:none}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--gold);cursor:pointer;border:none}
 
 /* Header */
 .top{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 0}
@@ -428,6 +431,16 @@ input,button{font-size:16px} /* prevent iOS zoom */
         <div class="plan-head"><h2>🎯 175 + Flying Pig 3-Way</h2><span class="tag gold" id="cruiseDays"></span></div>
         <div class="muted" id="cruiseLine" style="margin-top:6px"></div>
         <div class="coachmsg" id="coachMsgD"></div>
+      </div>
+
+      <div class="card">
+        <div class="plan-head"><h2>📆 Goal Projection</h2><span class="tag gold" id="pjDate"></span></div>
+        <div class="muted" id="pjSummary" style="margin-top:6px"></div>
+        <input type="range" id="pjRate" min="0.5" max="3" step="0.25" value="1.5" style="width:100%;margin-top:12px">
+        <div class="muted" id="pjRateLbl" style="text-align:center;margin-top:2px"></div>
+        <div class="muted" id="pjFeedback" style="margin-top:8px;line-height:1.5"></div>
+        <div class="muted" id="pjApplied" style="margin-top:8px;font-size:12.5px"></div>
+        <button class="bigbtn" id="pjApply" style="margin-top:8px">Set my targets to this pace</button>
       </div>
 
       <div class="card">
@@ -1040,6 +1053,7 @@ function fix(s){
  d.weights=Array.isArray(d.weights)&&d.weights.length?d.weights:[{d:baseKey(),w:227}];
  d.food=d.food&&typeof d.food==="object"?d.food:{};
  d.calTarget=Number(d.calTarget)||2000;
+ d.goalRate=Number(d.goalRate)||1.5;
  d.races=Array.isArray(d.races)?d.races:[];
  d.phase=Number(d.phase)||0;d.bestStreak=Number(d.bestStreak)||0;
  d.lvl=Number(d.lvl)||0;
@@ -1093,6 +1107,36 @@ function buildNav(){
 }
 
 /* ============ RENDER ============ */
+function pjFmtDate(d){return d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});}
+function pjCalc(){
+ var w=state.dad.weights;var cur=(w&&w.length)?Number(w[w.length-1].w):227;
+ var rate=Number(state.dad.goalRate)||1.5;
+ var toGo=Math.max(0,Math.round((cur-175)*10)/10);
+ var estMaint=Math.round(cur*14/10)*10;
+ var deficit=Math.round(rate*500);
+ var target=Math.max(1700,Math.round((estMaint-deficit)/10)*10);
+ var weeks=toGo>0?Math.ceil(toGo/rate):0;
+ var date=new Date(Date.now()+weeks*7*86400000);
+ return {cur:cur,rate:rate,toGo:toGo,estMaint:estMaint,deficit:deficit,target:target,weeks:weeks,date:date};
+}
+function renderProjection(){
+ if(!$("pjRate"))return;
+ var c=pjCalc();
+ if($("pjRate").value!=String(c.rate))$("pjRate").value=c.rate;
+ var race=new Date(2027,4,3);
+ $("pjDate").textContent=c.toGo>0?pjFmtDate(c.date):"at goal 🎉";
+ $("pjSummary").textContent=c.toGo>0?(c.cur+" lb now → 175 is "+c.toGo+" lb away. At "+c.rate+" lb/week you’d hit 175 by about "+pjFmtDate(c.date)+" ("+c.weeks+" weeks)."):("You’re at 175 — maintain and chase the six-pack.");
+ $("pjRateLbl").textContent="← slower · pace "+c.rate+" lb/week · faster →";
+ var fb;
+ if(c.rate<=1)fb="🟢 Very sustainable — easy to live with, just slower. Good when life gets busy.";
+ else if(c.rate<=2)fb="✅ The sweet spot. ~"+c.deficit+" cal/day under maintenance keeps your muscle while the fat leaves. Recommended.";
+ else if(c.rate<=2.5)fb="⚠️ Aggressive. A ~"+c.deficit+" cal/day deficit works for a few weeks with perfect low-carb + extra cardio, but it’s hard to hold. Watch your energy.";
+ else fb="🛑 Too fast. ~"+c.deficit+" cal/day is a crash pace — you’ll shed muscle, stall, and rebound. Not recommended; keep it to 1–2 lb/week.";
+ var rctx="";
+ if(c.toGo>0)rctx=(c.date<=race)?" You’d reach 175 before the Flying Pig 3-Way — right on track.":" You’d still be cutting at Pig weekend (early May) — totally fine, just run it lighter than today.";
+ $("pjFeedback").textContent=fb+rctx;
+ $("pjApplied").textContent="Rough est. maintenance ~"+c.estMaint+" cal/day → this pace sets a "+c.target+" cal/day target. (Tap ‘Set my targets’ to apply.)";
+}
 var growIdx=-1;
 function renderGrow(){
  if(!$("gSkill"))return;
@@ -1426,6 +1470,7 @@ function renderDadToday(){
  $("filmTopicD").textContent="This week: "+fd[0];$("filmLookD").textContent="👀 Look for: "+fd[1];$("filmLinkD").href=yt(fd[2]);
  const fdd=!!(state.dad.film&&state.dad.film.wk===wk&&state.dad.film.done);
  wire("filmBtnD",fdd,"Studied it","Film studied ✓",()=>{const was=!!(state.dad.film&&state.dad.film.wk===wk&&state.dad.film.done);state.dad.film={wk:wk,done:!was};scheduleSave();render();});
+ renderProjection();
  renderFeedback();
  renderCheckin("d",e);
 }
@@ -1713,6 +1758,8 @@ function renderDadPlan(){
 $("introIx").addEventListener("click",()=>{state.isaac.intro=true;scheduleSave();render();});
 $("introDx").addEventListener("click",()=>{state.dad.intro=true;scheduleSave();render();});
 var _gn=$("gNext");if(_gn)_gn.addEventListener("click",function(){growIdx=(growIdx<0?doy()%BIZLEAD.length:growIdx)+1;renderGrow();});
+var _pjr=$("pjRate");if(_pjr)_pjr.addEventListener("input",function(){state.dad.goalRate=Number(this.value)||1.5;renderProjection();scheduleSave();});
+var _pja=$("pjApply");if(_pja)_pja.addEventListener("click",function(){var c=pjCalc();state.dad.calTarget=c.target;var msg="Calorie target set to "+c.target+"/day.";if(c.rate>=2){state.dad.lvl=Math.min(8,(Number(state.dad.lvl)||0)+1);msg+=" Workout bumped up for the faster pace.";}scheduleSave();render();toast(msg);});
 $("scanClose").addEventListener("click",closeScanner);
 var _smb=$("scanManualBtn");if(_smb)_smb.addEventListener("click",useManualBarcode);
 var _fbs=$("dFbSend");if(_fbs)_fbs.addEventListener("click",function(){var el=$("dFbNote");var t=(el&&el.value||"").trim();var fb=state.dad.fb||(state.dad.fb={joints:false,time:false,note:"",diff:"",ts:0});fb.note=t;fb.ts=Date.now();state.dad.fbLog=([{t:t,at:new Date().toISOString(),diff:fb.diff||"",joints:!!fb.joints,time:!!fb.time}].concat(state.dad.fbLog||[])).slice(0,20);if(el)el.value="";scheduleSave();render();toast(t?"Coach got your note ✓":"Saved ✓");});
