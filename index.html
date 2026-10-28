@@ -57,6 +57,11 @@ input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radi
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;border-radius:50%;background:var(--gold);cursor:pointer;border:none}
 input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--gold);cursor:pointer;border:none}
 .path .pdate{font-size:12px;color:var(--gold);margin-top:3px;font-weight:800}
+.idea{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.idea:last-child{border-bottom:none}
+.idea .iname{font-weight:800;font-size:14.5px;line-height:1.35}
+.idea .imac{font-size:12.5px;color:var(--muted);margin-top:2px}
+.idea button{white-space:nowrap}
 
 /* Header */
 .top{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 0}
@@ -524,6 +529,12 @@ input,button{font-size:16px} /* prevent iOS zoom */
       </div>
 
       <div class="card">
+        <div class="plan-head"><h2>🥙 Meal & Snack Ideas</h2><span class="tag gold" id="ideaMeal"></span></div>
+        <div class="muted" style="margin-top:4px">Low-carb and built around what you like. Tap <b>+ Log</b> to add it to today.</div>
+        <div id="ideaList"></div>
+      </div>
+
+      <div class="card">
         <h2>📒 Today's Diary</h2>
         <div id="diaryList"></div>
       </div>
@@ -939,7 +950,7 @@ function dadPlanToday(){
 
 const PATH=[["Start line","Move every day + low carb"],["First 10 lbs down","The hardest part is behind you"],["Halfway to 175","Clothes fit different, energy climbs"],["Hit 175 lbs","Goal weight — then carve the abs"],["Six-pack visible","A few lbs leaner — the abs show"],["Sub-3 Marathon 🐷","26.2 at the Flying Pig 4-Way · 2:59:59 goal"]];
 const RACES=[
-["Flying Pig 4-Way ⭐ your goal","Cincinnati · early May 2027 · 5K + 10K + full Marathon","Challenge"],
+["Flying Pig 4-Way ⭐ your goal","Cincinnati · early May 2027 · Sat 5K 7am + 10K 9am, Sun full marathon","Challenge"],
 ["Flying Pig Marathon & Half","Cincinnati · typically early May","Marathon / Half"],
 ["Queen Bee Half Marathon","Cincinnati · typically October","Half"],
 ["Hudepohl 14K/7K Brewery Run","Cincinnati · typically September","Tune-up"],
@@ -950,6 +961,36 @@ const RACES=[
 ["IRONMAN 70.3 Ohio","Sandusky, OH · typically July","70.3"],
 ["IRONMAN 70.3 Muncie","Muncie, IN · typically July","70.3"]
 ];
+const MEALIDEAS={
+Breakfast:[
+["Veggie + mushroom omelet (3 eggs, feta)",320,24,2,"g","veg"],
+["Greek yogurt + berries + almonds",250,20,10,"g","fruit"],
+["Avocado + 2 eggs + salsa",300,16,2,"g","veg"],
+["Protein shake + a handful of almonds",300,32,4,"g",""]
+],
+Lunch:[
+["Mediterranean chicken bowl (greens, olives, feta, cucumber, olive oil)",500,40,5,"g","veg"],
+["Grilled chicken wrap (low-carb tortilla + veggies)",430,35,3,"g","veg"],
+["Big salad + grilled chicken, olives + avocado",460,38,4,"g","veg"],
+["Mexican chicken bowl (lettuce, salsa, guac, cheese — skip the rice)",500,36,6,"g","veg"]
+],
+Dinner:[
+["Grilled chicken + roasted mushrooms + salad",470,45,5,"g","veg"],
+["Baked salmon + roasted veggies",500,40,4,"g","veg"],
+["Chicken-stuffed peppers + side salad",420,34,8,"g","veg"],
+["Shrimp + zucchini noodles + salad",400,35,5,"g","veg"]
+],
+Snacks:[
+["Olives (a handful)",70,0,0,"g",""],
+["Raw veggies + guac or hummus",150,4,4,"g","veg"],
+["Cheese + a few nuts",200,10,2,"g",""],
+["2 hard-boiled eggs",140,12,1,"g",""],
+["Apple + almond butter",200,6,16,"y","fruit"],
+["Berries + a handful of nuts",160,5,9,"g","fruit"],
+["Post-run: protein shake + banana",270,30,18,"y","fruit"],
+["Post-run: Greek yogurt + fruit + honey",260,18,24,"y","fruit"]
+]
+};
 const QUICKFOODS=[["Eggs (2)",140],["Chicken breast",280],["Protein shake",160],["Greek yogurt",120],["Banana",105],["Oatmeal bowl",300],["Turkey sandwich",350],["Rice + chicken bowl",550],["Salad + protein",400],["Slice of pizza",290]];
 
 const COACHD=[
@@ -1480,6 +1521,20 @@ function addFoodEntry(name,cal,prot,sug,grade,tag){
  state.dad.recent=[[name,Math.round(cal),Math.round(prot||0),Math.round(sug||0),grade||"y",tag||""]].concat((state.dad.recent||[]).filter(r=>r[0]!==name)).slice(0,8);
  foodQ="";scheduleSave();renderDadFood();toast("Logged to "+curMeal+" ✓");
 }
+function renderMealIdeas(){
+ const box=$("ideaList");if(!box)return;
+ if($("ideaMeal"))$("ideaMeal").textContent=curMeal;
+ const items=MEALIDEAS[curMeal]||[];
+ box.innerHTML="";
+ items.forEach(function(it){
+  const el=document.createElement("div");el.className="idea";
+  el.innerHTML='<div class="itxt"><div class="iname"></div><div class="imac"></div></div><button class="mini">+ Log</button>';
+  el.querySelector(".iname").textContent=it[0];
+  el.querySelector(".imac").textContent="~"+it[1]+" cal \u00b7 "+it[2]+"g protein"+(it[3]?(" \u00b7 "+it[3]+"g sugar"):"");
+  el.querySelector("button").addEventListener("click",function(){addFoodEntry(it[0],it[1],it[2],it[3],it[4],it[5]);});
+  box.appendChild(el);
+ });
+}
 function renderDadFood(){
  const items=todayFood();
  const total=items.reduce((a,b)=>a+(Number(b.cal)||0),0);
@@ -1506,6 +1561,7 @@ function renderDadFood(){
  const MEALS=["Breakfast","Lunch","Dinner","Snacks"];
  const mp=$("mealPills");mp.innerHTML="";
  MEALS.forEach(m=>{const b=document.createElement("button");b.className="mp"+(curMeal===m?" on":"");b.textContent=m;b.addEventListener("click",()=>{curMeal=m;renderDadFood();});mp.appendChild(b);});
+ renderMealIdeas();
  $("mealTag").textContent="→ "+curMeal;
  const sb=$("scanBtn");const sb2=sb.cloneNode(true);sb.parentNode.replaceChild(sb2,sb);
  sb2.addEventListener("click",openScanner);
