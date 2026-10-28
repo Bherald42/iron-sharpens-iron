@@ -937,9 +937,9 @@ function dadPlanToday(){
  return plan;
 }
 
-const PATH=[["Start line","Move every day + low carb"],["First 10 lbs down","The hardest part is behind you"],["Halfway to 175","Clothes fit different, energy climbs"],["Hit 175 lbs","Goal weight — then carve the abs"],["Six-pack visible","A few lbs leaner — the abs show"],["Sub-3 Marathon 🐷","Flying Pig 4-Way weekend · 2:59:59 goal"]];
+const PATH=[["Start line","Move every day + low carb"],["First 10 lbs down","The hardest part is behind you"],["Halfway to 175","Clothes fit different, energy climbs"],["Hit 175 lbs","Goal weight — then carve the abs"],["Six-pack visible","A few lbs leaner — the abs show"],["Sub-3 Marathon 🐷","26.2 at the Flying Pig 4-Way · 2:59:59 goal"]];
 const RACES=[
-["Flying Pig 4-Way ⭐ your goal","Cincinnati · Pig weekend, early May · the four-race challenge","Challenge"],
+["Flying Pig 4-Way ⭐ your goal","Cincinnati · early May 2027 · 5K + 10K + full Marathon","Challenge"],
 ["Flying Pig Marathon & Half","Cincinnati · typically early May","Marathon / Half"],
 ["Queen Bee Half Marathon","Cincinnati · typically October","Half"],
 ["Hudepohl 14K/7K Brewery Run","Cincinnati · typically September","Tune-up"],
@@ -1359,7 +1359,7 @@ async function askCoach(p){
   const sm=await window.claude.use("sample");
   if(sm){
    const r=await sm("You are the head coach of an elite sports performance facility — part nutritionist, endurance coach, QB coach, strength coach and life coach. "+(p==="dad"
-    ?"Your athlete: adult male, currently heavy, losing weight to get lean — near-term goal 175 lb with a visible six-pack, and building toward a sub-3 marathon (~6:50/mi) at the Flying Pig 4-Way next May. His proven approach is LOW-CARB eating + cardio. Home gear only: 25 lb dumbbells, a treadmill and a bike; he trains something every day. Reply UNDER 110 words, direct and warm, second person: 1) one-line read on his week, 2) two specific adjustments for tomorrow's workout using only that gear, 3) one low-carb nutrition cue for a steady deficit with high protein. Never suggest under 1700 calories/day or extreme methods. Close with one mindset line — he is also modeling discipline for his 8-year-old son who trains with him. Respect easy-days-easy / hard-days-hard and the every-4th-week deload."
+    ?"Your athlete: adult male, currently heavy, losing weight to get lean — near-term goal 175 lb with a visible six-pack, and building toward a sub-3 marathon (~6:50/mi) at the Flying Pig 4-Way (5K + 10K + full marathon) next May. His proven approach is LOW-CARB eating + cardio. Home gear only: 25 lb dumbbells, a treadmill and a bike; he trains something every day. Reply UNDER 110 words, direct and warm, second person: 1) one-line read on his week, 2) two specific adjustments for tomorrow's workout using only that gear, 3) one low-carb nutrition cue for a steady deficit with high protein. Never suggest under 1700 calories/day or extreme methods. Close with one mindset line — he is also modeling discipline for his 8-year-old son who trains with him. Respect easy-days-easy / hard-days-hard and the every-4th-week deload."
     :"Your athlete: an 8-year-old boy training to be a starting QB, basketball in season. Reply UNDER 80 words, super encouraging and fun, second person, ZERO diet or weight talk: 1) hype his effort, 2) one focus for tomorrow, 3) one confidence or leadership challenge. Channel the calm-swagger Dart aura: composed under pressure, confident body language, lifts his teammates.")
     +" His data: "+JSON.stringify(data),{cache:false});
    text=r&&r.text?r.text.trim():"";
