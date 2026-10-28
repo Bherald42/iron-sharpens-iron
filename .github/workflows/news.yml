@@ -3,6 +3,10 @@ on:
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/build-feed.mjs'
+      - '.github/workflows/news.yml'
 permissions:
   contents: write
 concurrency:
