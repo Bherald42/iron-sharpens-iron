@@ -238,7 +238,7 @@ input,button{font-size:16px} /* prevent iOS zoom */
   <div class="sub" style="margin-top:18px">Who's sharpening today?</div>
   <div class="pcards">
     <div class="pcard isaac" id="pickIsaac"><div class="pico">🏈</div><div class="pname">Isaac</div><div class="prole">Future starting QB</div></div>
-    <div class="pcard dad" id="pickDad"><div class="pico">🏃</div><div class="pname">Dad</div><div class="prole">Lean & Strong</div></div>
+    <div class="pcard dad" id="pickDad"><div class="pico">🏃</div><div class="pname">Dad</div><div class="prole">Lean → Flying Pig 3-Way</div></div>
   </div>
   <div style="margin-top:22px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
     <button class="switch" id="exportBtn">⬇︎ Export backup</button>
@@ -398,7 +398,7 @@ input,button{font-size:16px} /* prevent iOS zoom */
         <div class="muted" style="margin-top:6px;line-height:1.7">Your rhythm: workout before Isaac wakes → family morning routine → log food as you eat (📷 scan or 🔎 search) → evening check-in so Coach adjusts tomorrow. Weigh in a few mornings a week — it's data, not judgment. The 🛣️ Plan tab has your lean path and the science behind all of it.</div>
       </div>
       <div class="card" style="border-color:rgba(245,197,66,.5)">
-        <div class="plan-head"><h2>🎯 Lean to 175</h2><span class="tag gold" id="cruiseDays"></span></div>
+        <div class="plan-head"><h2>🎯 175 + Flying Pig 3-Way</h2><span class="tag gold" id="cruiseDays"></span></div>
         <div class="muted" id="cruiseLine" style="margin-top:6px"></div>
         <div class="coachmsg" id="coachMsgD"></div>
       </div>
@@ -498,7 +498,7 @@ input,button{font-size:16px} /* prevent iOS zoom */
 
     <section id="d-plan" class="hidden">
       <div class="card">
-        <h2>🛣️ Your Lean Path</h2>
+        <h2>🛣️ Your Path to the Pig</h2>
         <div class="muted" style="margin-top:4px">Tap your current phase.</div>
         <div class="path" id="pathList"></div>
       </div>
@@ -507,7 +507,7 @@ input,button{font-size:16px} /* prevent iOS zoom */
         <div class="muted" style="margin-top:6px;line-height:1.7"><b style="color:var(--gold)">80/20 polarized training</b> (Dr. Stephen Seiler): ~80% of endurance work stays easy and conversational, ~20% goes truly hard. The gray zone in between is where progress dies — so your easy days are deliberately easy and your interval/tempo days are the only hard ones.<br><br><b style="color:var(--gold)">Fat loss that keeps muscle</b>: research on resistance-trained people supports losing ~0.5–1% of bodyweight per week with high protein (~0.7–1 g per lb — 160–180 g for you, split across 3–5 meals) plus lifting. That combo is what protects lean mass while the fat leaves — which is exactly what makes 175 look like a six-pack.<br><br><b style="color:var(--gold)">Progressive overload + deloads</b>: volume climbs for 3 weeks, then every 4th week backs off so your body absorbs the work. Strength uses double progression — with fixed 25 lb dumbbells, own the top of the rep range, then add a rep or slow the tempo.<br><br><b style="color:var(--gold)">Isaac's plan — NSCA youth guidelines</b>: kids ready for sports (around age 7–8) are ready for supervised, form-first, bodyweight strength training, and it benefits bone and long-term athleticism. His engine: movement variety, low reps, fun over max effort, never maxing out.</div>
       </div>
 
-      <div class="card hidden">
+      <div class="card">
         <h2>🏁 Races near Cincinnati</h2>
         <div class="muted" style="margin-top:4px">Recurring events — tap Target to add to your goals, and check official sites for this year's dates.</div>
         <div id="raceList"></div>
@@ -767,71 +767,76 @@ const DGOALS=[
  {id:"g2",name:"Made layups in a row",target:5,current:0,rewarded:false},
  {id:"g3",name:"Lane shuttles without stopping",target:4,current:0,rewarded:false}
 ];
-const DWEEK=["recover","strA","tread","strB","bike","strC","longcardio"];
+const DWEEK=["recover","strA","run","bike","strB","runtempo","longrun"];
 function dadPlan(dow,wk){
  const cyc=((wk-1)%4)+1, dl=cyc===4, pre=dl?"Deload · ":"";
- const z2="Fat-burn pace = you can still talk. Easy cardio burns fat and spares muscle.";
  const key=DWEEK[dow];
- if(key==="strA"){const s=dl?"2":"3";
-  return{t:pre+"Dumbbell Strength A",tag:"💪 25 lb · Full Body",sub:"Week "+wk+" · lifting keeps muscle while the fat comes off. 25 lb is your weight — when every set hits the top rep clean, add a rep or slow the tempo.",d:[
-  ["Goblet squat",s+" × 8–12","One bell at the chest, sit deep, drive up tall."],
-  ["One-arm row",s+" × 8–12 each","Flat back, pull the bell to your hip — no shrug."],
-  ["DB floor press",s+" × 8–12","Press both bells up, pause an inch off the floor."],
-  ["Reverse lunges",s+" × 8 each leg","Bells at your sides, step back, soft front knee."],
-  ["Plank",s+" × 45 sec","Brace like a punch is coming — this builds the six-pack."],
-  ["Treadmill or bike finisher","10 min easy","Extra burn at an easy pace — don't skip it."]]};}
- if(key==="strB"){const s=dl?"2":"3";
+ if(key==="strA"){const sN=dl?"2":"3";
+  return{t:pre+"Dumbbell Strength A",tag:"💪 25 lb · Full Body",sub:"Week "+wk+" · lifting keeps muscle while the fat comes off, and strong legs make the running easier. 25 lb — top reps clean? add a rep or slow the tempo.",d:[
+  ["Goblet squat",sN+" × 8–12","One bell at the chest, sit deep, drive up tall."],
+  ["One-arm row",sN+" × 8–12 each","Flat back, pull the bell to your hip — no shrug."],
+  ["DB floor press",sN+" × 8–12","Press both bells up, pause an inch off the floor."],
+  ["Reverse lunges",sN+" × 8 each leg","Bells at your sides, step back, soft front knee."],
+  ["Plank",sN+" × 45 sec","Brace like a punch is coming — builds the six-pack."],
+  ["Easy bike or walk finisher","10 min","Extra fat-burn at an easy pace — low carb + cardio is your formula."]]};}
+ if(key==="strB"){const sN=dl?"2":"3";
   return{t:pre+"Dumbbell Strength B",tag:"💪 25 lb · Full Body",sub:"Week "+wk+" · different moves, same goal — total-body strength plus abs.",d:[
-  ["Dumbbell RDL (hip hinge)",s+" × 8–12","Soft knees, push the hips back, flat back, squeeze up."],
-  ["DB push press",s+" × 6–10","Dip the legs, then drive both bells overhead."],
-  ["Split squat",s+" × 8 each leg","Tall chest, back knee toward the floor."],
-  ["DB curl",s+" × 10–12","Slow and controlled — no swinging."],
-  ["Leg raises + bicycle crunch",s+" × 10 raises + 20 bicycles","Lower back flat — carves the lower abs."],
-  ["Treadmill or bike finisher","10 min easy",""]]};}
- if(key==="strC"){const s=dl?"2":"3";
-  return{t:pre+"Dumbbell Strength C",tag:"💪 25 lb · Full Body",sub:"Week "+wk+" · the third angle — grip the bells and own every rep.",d:[
-  ["Goblet squat (3-sec down)",s+" × 8–10","Three seconds down, drive up — control builds muscle."],
-  ["One-arm row",s+" × 8–12 each","Pull to the hip, squeeze the back."],
-  ["DB floor press",s+" × 8–12","Full lockout, slow negative."],
-  ["DB calf raises",s+" × 12–15","Bells at your sides, big slow squeeze at the top."],
-  ["Side plank + crunches","2 × 30 sec each side + 20 crunches","Obliques finish the six-pack."],
-  ["Treadmill or bike finisher","10 min easy",""]]};}
- if(key==="tread"){const r=dl?5:Math.min(10,6+Math.floor(wk/2));
-  return{t:pre+"Treadmill Intervals",tag:"🏃 Fat Burn",sub:"Week "+wk+" · intervals torch calories and keep burning after. A brisk incline walk counts fully if running is too much.",d:[
-  ["Warm-up walk","5 min easy",""],
-  ["Intervals",r+" × 1 min hard (run or fast incline walk) / 90 sec easy walk","Hard = 3 words max. Incline is your friend."],
-  ["Core finisher","2 rounds: 15 crunches, 12 leg raises, 30-sec plank","Abs need reps AND the deficit."],
+  ["Dumbbell RDL (hip hinge)",sN+" × 8–12","Soft knees, hips back, flat back, squeeze up — protects the runner's hamstrings."],
+  ["DB push press",sN+" × 6–10","Dip the legs, drive both bells overhead."],
+  ["Split squat",sN+" × 8 each leg","Tall chest, back knee toward the floor."],
+  ["DB curl",sN+" × 10–12","Slow and controlled — no swinging."],
+  ["Leg raises + bicycle crunch",sN+" × 10 raises + 20 bicycles","Lower back flat — carves the lower abs."],
+  ["Easy bike or walk finisher","10 min","Extra fat-burn at an easy pace."]]};}
+ if(key==="run"){const r=dl?4:Math.min(8,4+Math.floor(wk/2));
+  return{t:pre+"Treadmill Run/Walk",tag:"🏃 Build the Engine",sub:"Week "+wk+" · run/walk builds a runner without wrecking the knees — this is the base for the Flying Pig 3-Way.",d:[
+  ["Warm-up walk","5 min brisk",""],
+  ["Run/walk intervals",r+" × 2 min easy jog / 2 min walk","Jog = you could still say 3 words. Walk tall and fast."],
+  ["Core finisher","2 rounds: 15 crunches, 12 leg raises, 30-sec plank","Low carb + cardio — your proven combo."],
   ["Cool-down","5 min walk + stretch",""]]};}
  if(key==="bike"){const st=dl?3:Math.min(6,4+Math.floor(wk/2)),m=wk>=4?4:3;
-  return{t:pre+"Bike Intervals",tag:"🚴 Engine + Burn",sub:"Week "+wk+" · "+z2,d:[
+  return{t:pre+"Bike Cross-Train",tag:"🚴 Low-Impact Burn",sub:"Week "+wk+" · saves the legs while still torching calories. Fat burns best when the carbs stay low.",d:[
   ["Warm-up spin","5 min easy",""],
   ["Intervals",st+" × "+m+" min strong / 2 min easy","Strong but smooth — legs working, posture tall."],
   ["Core circuit","2 rounds: 15 crunches, 12 leg raises, 30-sec plank",""],
   ["Cool-down","5 min easy spin",""]]};}
+ if(key==="runtempo"){const m=dl?8:Math.min(25,8+wk*2);
+  return{t:pre+"Treadmill Tempo",tag:"🏃 Get Faster",sub:"Week "+wk+" · your one truly hard run — this makes race pace feel easy later. A fast incline walk counts if jogging that long is too much yet.",d:[
+  ["Warm-up","8 min easy walk/jog",""],
+  ["Tempo",m+" min comfortably hard (jog or fast incline walk)","Steady effort you could just hold — grow the minutes week to week."],
+  ["Core finisher","2 rounds: 20 crunches + 30-sec side plank each side",""],
+  ["Cool-down","5 min + stretch",""]]};}
  if(key==="recover"){
-  return{t:pre+"Active Recovery",tag:"🧘 Move Easy",sub:"Week "+wk+" · something every day — today is easy on purpose so the fat keeps coming off without burnout.",d:[
-  ["Easy walk (treadmill or outside)","20–30 min","Flat and relaxed — still burns fat."],
-  ["Full-body mobility","10 min — hips, hamstrings, shoulders, back",""],
+  return{t:pre+"Active Recovery",tag:"🧘 Move Easy",sub:"Week "+wk+" · something every day — today's easy on purpose so the fat keeps coming off and your legs recover for the week.",d:[
+  ["Easy walk (treadmill or outside)","20–30 min","Flat, relaxed — still burns fat."],
+  ["Full-body mobility","10 min — hips, hamstrings, calves, back","Happy joints = consistent running."],
   ["Light core","2 rounds: 12 crunches, 20-sec plank","Keep the daily ab habit alive."]]};}
- const m=dl?Math.round(Math.min(60,35+(wk-1)*3)*0.6):Math.min(60,35+(wk-1)*3);
- return{t:pre+"Long Easy Burn",tag:"🔥 Fat-Loss Cardio",sub:"Week "+wk+" · "+z2+" This steady session is the biggest fat-burner of the week.",d:[
- ["Steady bike or incline treadmill walk",m+" min easy","Conversational the whole way — easy cardio runs on fat."],
+ // longrun (Sat) — the 3-Way builder
+ const m=dl?Math.round(Math.min(90,30+(wk-1)*5)*0.6):Math.min(90,30+(wk-1)*5);
+ return{t:pre+"Long Run/Walk",tag:"🐷 Pig Builder",sub:"Week "+wk+" · the key day for the 3-Way — time on feet. Run/walk the whole thing, no ego.",d:[
+ ["Run/walk steady",m+" min (e.g. jog 3 min / walk 1 min, repeat)","Conversational the whole way — distance now, speed later."],
  ["Core circuit","3 rounds: 15 crunches, 12 leg raises, 30-sec plank",""],
- ["Stretch hips + calves + back","5 min","Recover so you can go again tomorrow."]]};
+ ["Stretch hips + calves + back","5–8 min",""]]};
 }
 function dadPlanToday(){
  const wk=weekNum();let plan=dadPlan(new Date().getDay(),wk);
  const ye=state.dad.history[ydayKey()];
- if(ye&&ye.sore===2){plan={t:"Coach Swap · Active Recovery",tag:"🔁 Auto-adjusted",sub:"You flagged soreness yesterday — today flushes it out. The program resumes tomorrow.",d:[
+ if(ye&&ye.sore===2){return{t:"Coach Swap · Active Recovery",tag:"🔁 Auto-adjusted",sub:"You flagged soreness yesterday — today flushes it out so you don't get hurt. The program resumes tomorrow.",d:[
   ["Easy bike or walk","20–30 min, truly easy","Recovery pace still burns fat and loosens you up."],
   ["Full-body mobility","10 min — hips, calves, back",""],
   ["Light core","1 round: 10 crunches, 20-sec plank",""]]};}
- else if(ye&&ye.energy===1){plan={...plan,sub:"⚠️ Yesterday ran heavy — cut volume ~30% today, keep everything easy. · "+plan.sub};}
+ let tune="";
+ if(ye&&ye.energy===1)tune="⚠️ You felt rough yesterday — cut volume ~30% today and keep it easy.";
+ else if(ye&&ye.energy===3)tune="🔥 You were strong yesterday — push the hard efforts a notch harder today.";
+ const w=state.dad.weights;
+ if(w&&w.length>=3){const rr=w.slice(-3);const drop=rr[0].w-rr[rr.length-1].w;
+  if(drop<=0.2)tune=(tune?tune+" ":"")+"📉 Scale's stalled — tighten the low-carb today (zero starch) and add 10 min easy cardio.";}
+ if(tune)plan={...plan,sub:"Today's tune-up: "+tune+" · "+plan.sub};
  return plan;
 }
 
-const PATH=[["Start line","Move every day — build the daily habit"],["First 10 lbs down","The hardest part is behind you"],["Halfway to 175","Clothes fit different, energy climbs"],["Hit 175 lbs","Goal weight — then we carve the abs"],["Six-pack visible","Lean and strong — time to set the next goal."]];
+const PATH=[["Start line","Daily habit + low-carb — the weight starts moving"],["First 15 lbs down","Lighter on your feet already"],["Run/walk 30 min nonstop","Base engine built"],["5K without stopping","You're a runner now"],["10K strong","Half-race shape — and 175 in sight"],["Flying Pig 3-Way 🐷","5K + 10K + Half over Pig weekend — May"]];
 const RACES=[
+["Flying Pig 3-Way ⭐ your goal","Cincinnati · Pig weekend, early May · 5K + 10K + Half","Challenge"],
 ["Flying Pig Marathon & Half","Cincinnati · typically early May","Marathon / Half"],
 ["Queen Bee Half Marathon","Cincinnati · typically October","Half"],
 ["Hudepohl 14K/7K Brewery Run","Cincinnati · typically September","Tune-up"],
@@ -869,7 +874,7 @@ const DNUT=[
 ["🎯 Hit the calorie target","log everything — even the sneaky bites"],
 ["🥩 40g protein anchor × 4 meals","the 160–180g that protects muscle"],
 ["🥦 Veggies at lunch AND dinner","two fists each — fiber wins the hunger war"],
-["🍬 Added sugar under 40g","watch the diary bar — drinks and sauces ambush you"],
+["🍞 Low carb — skip bread, rice, pasta, sugar","protein + veggies + healthy fats is your proven formula"],
 ["🚫 Zero liquid calories","water and black coffee, that's it"],
 ["👣 Stay moving + water in reach","steps between workouts, water before snacks"]];
 
@@ -896,9 +901,9 @@ const FOODS=[
 ["Ice cream","1 cup",270,5,28,"r",""],["Cookie","1 large",150,2,11,"r",""],["Brownie","1 square",230,3,21,"r",""],["Candy bar","1 bar",250,3,27,"r",""],["Cake","1 slice",350,4,35,"r",""],["Apple pie","1 slice",320,3,20,"r",""]
 ];
 const NTIPS=[
-"Build every meal the same way: palm of protein first, two fists of veggies, then carbs — in that order on the plate and in your mouth.",
+"Build every low-carb plate: a palm of protein, two fists of veggies, a little healthy fat — skip the bread, rice, and potato.",
 "The 40g sugar budget is for ADDED sugar. Whole fruit doesn't scare us — soda, sauces, and cereal do.",
-"Carbs aren't the enemy; timing is. Put your biggest carb serving in the meal right after training.",
+"Low carb is your proven move — keep the starches off the plate and the scale keeps moving. If you do eat carbs, make it the meal right after a hard run.",
 "If it comes in a crinkly bag, it needs a plan. Pre-portion it — never eat from the bag.",
 "Grocery rule: shop the walls — produce, meat, dairy. The middle aisles are where cuts go to die.",
 "Restaurant play: protein + double veggies, sauce on the side, water. Order first so nobody sways you.",
@@ -1191,7 +1196,7 @@ function localCoach(p,d){
  const s=[];
  s.push(d.workoutsLast7>=5?"Strong week — "+d.workoutsLast7+"/7 workouts banked.":d.workoutsLast7>=3?"Decent week ("+d.workoutsLast7+"/7). Consistency is the whole game.":"Light week ("+d.workoutsLast7+"/7). No guilt — just don't miss tomorrow.");
  s.push(d.todaySore===2?"You flagged soreness: swap tomorrow's intensity for an easy spin or walk. Keep the streak without the beating.":"Tomorrow: add five easy minutes to the cardio block — the engine grows quietly.");
- s.push(d.avgCalLast3Days>d.calTarget?"Calories ran over target lately — pre-log dinner before you eat it.":"Nutrition cue: protein first at every meal, water before every snack decision.");
+ s.push(d.avgCalLast3Days>d.calTarget?"Calories ran over target lately — pre-log dinner before you eat it.":"Nutrition cue: keep it low-carb — protein + veggies + healthy fats, skip the bread and rice. Water before every snack decision.");
  s.push(d.lbsToGoal>0?(d.lbsToGoal+" lb to 175 — stack today on yesterday."):"At 175 — chase the six-pack, then set your next goal.");
  return s.join(" ");
 }
@@ -1203,7 +1208,7 @@ async function askCoach(p){
   const sm=await window.claude.use("sample");
   if(sm){
    const r=await sm("You are the head coach of an elite sports performance facility — part nutritionist, endurance coach, QB coach, strength coach and life coach. "+(p==="dad"
-    ?"Your athlete: adult male losing weight to get lean — goal 175 lb with a visible six-pack, his single focus. Home gear only: 25 lb dumbbells, a treadmill and a bike; he trains something every day. Reply UNDER 110 words, direct and warm, second person: 1) one-line read on his week, 2) two specific adjustments for tomorrow's workout using only that gear, 3) one nutrition cue for a steady deficit with high protein. Never suggest under 1700 calories/day or extreme methods. Close with one mindset line — he is also modeling discipline for his 8-year-old son who trains with him. Respect easy-days-easy / hard-days-hard and the every-4th-week deload."
+    ?"Your athlete: adult male, currently heavy, losing weight to get lean — near-term goal 175 lb with a visible six-pack, and building toward the Flying Pig 3-Way (5K+10K+Half) next May. His proven approach is LOW-CARB eating + cardio. Home gear only: 25 lb dumbbells, a treadmill and a bike; he trains something every day. Reply UNDER 110 words, direct and warm, second person: 1) one-line read on his week, 2) two specific adjustments for tomorrow's workout using only that gear, 3) one low-carb nutrition cue for a steady deficit with high protein. Never suggest under 1700 calories/day or extreme methods. Close with one mindset line — he is also modeling discipline for his 8-year-old son who trains with him. Respect easy-days-easy / hard-days-hard and the every-4th-week deload."
     :"Your athlete: an 8-year-old boy training to be a starting QB, basketball in season. Reply UNDER 80 words, super encouraging and fun, second person, ZERO diet or weight talk: 1) hype his effort, 2) one focus for tomorrow, 3) one confidence or leadership challenge. Channel the calm-swagger Dart aura: composed under pressure, confident body language, lifts his teammates.")
     +" His data: "+JSON.stringify(data),{cache:false});
    text=r&&r.text?r.text.trim():"";
@@ -1300,7 +1305,7 @@ function renderDadToday(){
  const lw=state.dad.weights[state.dad.weights.length-1].w;
  const toGo=Math.max(0,Math.round((lw-175)*10)/10);
  $("cruiseDays").textContent=toGo>0?toGo+" lb to go":"at goal 🎉";
- $("cruiseLine").textContent=toGo>0?("Goal: 175 lb + a six-pack — your one focus right now. "+toGo+" lb to go. Aim for ~1–2 lb/week: a steady calorie deficit + something active every day + lifting to keep muscle. At 175 the abs show."):("🎉 You hit 175! Lock in the six-pack, then tell Claude your next goal.");
+ $("cruiseLine").textContent=toGo>0?("Lose weight to 175 first, build toward the Flying Pig 3-Way next May. "+toGo+" lb to go — low-carb + daily cardio is your proven formula. Aim ~1–2 lb/week; the running base grows underneath it."):("🎉 At 175! Now it's all about the 3-Way — keep building those long run/walks.");
  $("coachMsgD").textContent="🎙️ Coach: "+COACHD[doy()%COACHD.length];
  const nl2=$("dNutList");nl2.innerHTML="";
  DNUT.forEach((f,i)=>{
