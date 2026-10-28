@@ -41,6 +41,18 @@ a{color:var(--sky)}
 .pcard .prole{font-size:13px;color:var(--muted);margin-top:2px}
 .pcard.isaac:hover,.pcard.isaac:active{border-color:var(--gold)}
 .pcard.dad:hover,.pcard.dad:active{border-color:var(--sky)}
+#picker{justify-content:flex-start;overflow-y:auto}
+.launchbox{width:100%;max-width:440px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px 16px;margin:14px auto 0;text-align:left}
+.launchbox .lb-label{font-family:'Lilita One';font-size:13px;color:var(--orange);letter-spacing:.3px}
+.launchbox .lb-quote{font-family:'Lilita One';font-size:19px;line-height:1.3;color:var(--gold);margin-top:6px}
+.launchbox .lb-quote-by{font-size:13px;color:var(--muted);margin-top:4px}
+.launchbox .lb-divider{height:1px;background:var(--line);margin:12px 0}
+.launchbox .lb-verse{font-size:15px;line-height:1.5;color:var(--ink)}
+.launchbox .lb-verse-ref{font-size:13px;color:var(--sky);margin-top:4px}
+.launchbox .lb-take{font-size:13px;color:var(--muted);margin-top:6px}
+.launchbox .lb-skill{font-family:'Lilita One';font-size:18px;margin-top:6px;color:var(--ink)}
+.launchbox .lb-skill-lesson{font-size:14px;color:var(--muted);line-height:1.5;margin-top:4px}
+.launchbox .lb-actions{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
 
 /* Header */
 .top{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 0}
@@ -239,6 +251,21 @@ input,button{font-size:16px} /* prevent iOS zoom */
   <div class="pcards">
     <div class="pcard isaac" id="pickIsaac"><div class="pico">🏈</div><div class="pname">Isaac</div><div class="prole">Future starting QB</div></div>
     <div class="pcard dad" id="pickDad"><div class="pico">🏃</div><div class="pname">Dad</div><div class="prole">Lean → Flying Pig 3-Way</div></div>
+  </div>
+  <div class="launchbox" id="launchInspire">
+    <div class="lb-label">✨ Daily fuel</div>
+    <div class="lb-quote" id="lQuote"></div>
+    <div class="lb-quote-by" id="lQuoteBy"></div>
+    <div class="lb-divider"></div>
+    <div class="lb-verse" id="lVerse"></div>
+    <div class="lb-verse-ref" id="lVerseRef"></div>
+    <div class="lb-take" id="lVerseTake"></div>
+  </div>
+  <div class="launchbox" id="launchGrow">
+    <div class="lb-label">📈 Grow today · Business & Leadership</div>
+    <div class="lb-skill" id="gSkill"></div>
+    <div class="lb-skill-lesson" id="gLesson"></div>
+    <div class="lb-actions"><a class="mini vid" id="gLink" target="_blank" rel="noopener">▶ Learn it (5 min)</a><button class="mini" id="gNext">Another →</button></div>
   </div>
   <div style="margin-top:22px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
     <button class="switch" id="exportBtn">⬇︎ Export backup</button>
@@ -597,6 +624,48 @@ const VERSES=[
 ["Romans 12:12","Rejoicing in hope; patient in tribulation; continuing instant in prayer.","Stay joyful, stay patient, stay praying.","What are you hoping for right now?"],
 ["Proverbs 17:17","A friend loveth at all times, and a brother is born for adversity.","Real friends show up on hard days.","Who's a friend you can count on?"]
 ];
+const QUOTES=[
+["Discipline is choosing between what you want now and what you want most.","Augustine"],
+["The second best time to plant a tree is today.","Chinese Proverb"],
+["Hard work beats talent when talent doesn't work hard.","Tim Notke"],
+["A leader knows the way, goes the way, and shows the way.","John C. Maxwell"],
+["Do the hard things while they are easy.","Lao Tzu"],
+["Success is small efforts repeated day in and day out.","Robert Collier"],
+["You don't have to be great to start, but you have to start to be great.","Zig Ziglar"],
+["Whatever you do, work at it with all your heart, as working for the Lord.","Colossians 3:23"],
+["People don't care how much you know until they know how much you care.","Theodore Roosevelt"],
+["Diligent hands will rule, but laziness ends in forced labor.","Proverbs 12:24"],
+["Motivation gets you started. Habit keeps you going.","Jim Ryun"],
+["The man who moves a mountain begins by carrying small stones.","Confucius"],
+["Commit to the Lord whatever you do, and he will establish your plans.","Proverbs 16:3"],
+["Leadership is taking care of those in your charge.","Simon Sinek"],
+["Fall seven times, stand up eight.","Japanese Proverb"],
+["Excellence is not an act, but a habit.","Will Durant"],
+["Let us not grow weary in doing good, for in due season we will reap.","Galatians 6:9"],
+["The price of discipline is less than the pain of regret.","Nido Qubein"],
+["Plans fail for lack of counsel, but with many advisers they succeed.","Proverbs 15:22"],
+["Don't watch the clock; do what it does. Keep going.","Sam Levenson"]];
+const BIZLEAD=[
+["Active listening","Repeat back what you heard before you reply. People follow leaders who make them feel understood.","active listening skills leadership"],
+["Beat hesitation","Count 5-4-3-2-1 and move. Leaders win by acting before doubt sets in.","mel robbins 5 second rule"],
+["Feedback that lands","Praise in public, correct in private, and be specific. 'Good job' teaches nothing.","how to give constructive feedback"],
+["Delegate to grow people","Hand off the task AND the decision. Doing it all yourself caps the team at you.","how to delegate effectively"],
+["Negotiate with why","Ask what the other side really needs. The best deals solve both problems.","negotiation skills getting to yes"],
+["Meetings worth having","Agenda, owner, decision, next step. Or don't meet.","how to run effective meetings"],
+["Build a simple budget","Give every dollar a job: income minus fixed costs, save first, spend what's left.","how to make a budget beginner"],
+["Profit vs revenue","Revenue is what comes in; profit is what you keep. Watch the keep.","revenue vs profit explained"],
+["Lead by example","Your team does what you do, not what you say. Set the standard yourself.","lead by example leadership"],
+["Protect your yes","Every yes to the trivial is a no to the important. Guard your priorities.","how to say no priorities"],
+["The compound effect","Small habits repeated beat big bursts. 1% better daily is 37x in a year.","the compound effect explained"],
+["Cash flow is king","A profitable business can still go broke if cash runs out. Track money in vs out weekly.","cash flow management small business"],
+["Ask better questions","Replace any questions with what's unclear and you'll get the truth.","asking better questions leadership"],
+["Own the mistake","That's on me, here's the fix builds more trust than being right.","taking accountability leadership"],
+["Price on value","Charge for the problem you solve, not the hours you spend.","value based pricing explained"],
+["Time-block your day","Protect one hour for your most important work before the noise starts.","time blocking productivity"],
+["Network by giving first","Help before you ask. Relationships compound like interest.","how to network authentically"],
+["Read a P&L","Sales at the top, costs in the middle, profit at the bottom. Know all three.","how to read a profit and loss statement"],
+["Vision before details","People need to know where they're going before they care how. Paint the picture first.","communicate vision leadership"],
+["Make the first offer","A reasonable first number anchors the range, in salary or sales.","anchoring negotiation first offer"]];
 const LEARN=[
 ["How do airplanes actually fly?","how do airplanes fly for kids"],
 ["Why do volcanoes erupt?","why do volcanoes erupt for kids"],
@@ -1024,6 +1093,20 @@ function buildNav(){
 }
 
 /* ============ RENDER ============ */
+var growIdx=-1;
+function renderGrow(){
+ if(!$("gSkill"))return;
+ if(growIdx<0)growIdx=doy()%BIZLEAD.length;
+ var b=BIZLEAD[((growIdx%BIZLEAD.length)+BIZLEAD.length)%BIZLEAD.length];
+ $("gSkill").textContent=b[0];$("gLesson").textContent=b[1];$("gLink").href=yt(b[2]);
+}
+function renderLaunch(){
+ var q=QUOTES[doy()%QUOTES.length];
+ if($("lQuote")){$("lQuote").textContent="\u201c"+q[0]+"\u201d";$("lQuoteBy").textContent="\u2014 "+q[1];}
+ var v=VERSES[doy()%VERSES.length];
+ if($("lVerse")){$("lVerse").textContent="\u201c"+v[1]+"\u201d";$("lVerseRef").textContent="\u2014 "+v[0]+" (KJV)";$("lVerseTake").textContent="\ud83d\udca1 "+v[2];}
+ renderGrow();
+}
 function render(){
  if(!profile){buildNav();return;}
  const dstr=new Date().toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"});
@@ -1629,6 +1712,7 @@ function renderDadPlan(){
 
 $("introIx").addEventListener("click",()=>{state.isaac.intro=true;scheduleSave();render();});
 $("introDx").addEventListener("click",()=>{state.dad.intro=true;scheduleSave();render();});
+var _gn=$("gNext");if(_gn)_gn.addEventListener("click",function(){growIdx=(growIdx<0?doy()%BIZLEAD.length:growIdx)+1;renderGrow();});
 $("scanClose").addEventListener("click",closeScanner);
 var _smb=$("scanManualBtn");if(_smb)_smb.addEventListener("click",useManualBarcode);
 var _fbs=$("dFbSend");if(_fbs)_fbs.addEventListener("click",function(){var el=$("dFbNote");var t=(el&&el.value||"").trim();var fb=state.dad.fb||(state.dad.fb={joints:false,time:false,note:"",diff:"",ts:0});fb.note=t;fb.ts=Date.now();state.dad.fbLog=([{t:t,at:new Date().toISOString(),diff:fb.diff||"",joints:!!fb.joints,time:!!fb.time}].concat(state.dad.fbLog||[])).slice(0,20);if(el)el.value="";scheduleSave();render();toast(t?"Coach got your note ✓":"Saved ✓");});
@@ -1678,6 +1762,7 @@ function importBackup(file){
 
 /* ============ BOOT ============ */
 render();
+try{renderLaunch();}catch(e){}
 initStorage();
 })();
 </script>
