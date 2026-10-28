@@ -254,7 +254,7 @@ input,button{font-size:16px} /* prevent iOS zoom */
   <div class="sub" style="margin-top:18px">Who's sharpening today?</div>
   <div class="pcards">
     <div class="pcard isaac" id="pickIsaac"><div class="pico">🏈</div><div class="pname">Isaac</div><div class="prole">Future starting QB</div></div>
-    <div class="pcard dad" id="pickDad"><div class="pico">🏃</div><div class="pname">Dad</div><div class="prole">Lean → Flying Pig 4-Way</div></div>
+    <div class="pcard dad" id="pickDad"><div class="pico">🏃</div><div class="pname">Dad</div><div class="prole">Lean → Sub-3 Marathon</div></div>
   </div>
   <div class="launchbox" id="launchInspire">
     <div class="lb-label">✨ Daily fuel</div>
@@ -429,7 +429,7 @@ input,button{font-size:16px} /* prevent iOS zoom */
         <div class="muted" style="margin-top:6px;line-height:1.7">Your rhythm: workout before Isaac wakes → family morning routine → log food as you eat (📷 scan or 🔎 search) → evening check-in so Coach adjusts tomorrow. Weigh in a few mornings a week — it's data, not judgment. The 🛣️ Plan tab has your lean path and the science behind all of it.</div>
       </div>
       <div class="card" style="border-color:rgba(245,197,66,.5)">
-        <div class="plan-head"><h2>🎯 175 + Flying Pig 4-Way</h2><span class="tag gold" id="cruiseDays"></span></div>
+        <div class="plan-head"><h2>🎯 Sub-3 Marathon · 175 lb</h2><span class="tag gold" id="cruiseDays"></span></div>
         <div class="muted" id="cruiseLine" style="margin-top:6px"></div>
         <div class="coachmsg" id="coachMsgD"></div>
       </div>
@@ -555,7 +555,7 @@ input,button{font-size:16px} /* prevent iOS zoom */
       </div>
       <div class="card">
         <h2>📚 Built on the research</h2>
-        <div class="muted" style="margin-top:6px;line-height:1.7"><b style="color:var(--gold)">80/20 polarized training</b> (Dr. Stephen Seiler): ~80% of endurance work stays easy and conversational, ~20% goes truly hard. The gray zone in between is where progress dies — so your easy days are deliberately easy and your interval/tempo days are the only hard ones.<br><br><b style="color:var(--gold)">Fat loss that keeps muscle</b>: research on resistance-trained people supports losing ~0.5–1% of bodyweight per week with high protein (~0.7–1 g per lb — 160–180 g for you, split across 3–5 meals) plus lifting. That combo is what protects lean mass while the fat leaves — which is exactly what makes 175 look like a six-pack.<br><br><b style="color:var(--gold)">Progressive overload + deloads</b>: volume climbs for 3 weeks, then every 4th week backs off so your body absorbs the work. Strength uses double progression — with fixed 25 lb dumbbells, own the top of the rep range, then add a rep or slow the tempo.<br><br><b style="color:var(--gold)">Isaac's plan — NSCA youth guidelines</b>: kids ready for sports (around age 7–8) are ready for supervised, form-first, bodyweight strength training, and it benefits bone and long-term athleticism. His engine: movement variety, low reps, fun over max effort, never maxing out.</div>
+        <div class="muted" style="margin-top:6px;line-height:1.7"><b style="color:var(--gold)">80/20 polarized training</b> (Dr. Stephen Seiler): ~80% of endurance work stays easy and conversational, ~20% goes truly hard. The gray zone in between is where progress dies — so your easy days are deliberately easy and your interval/tempo days are the only hard ones.<br><br><b style="color:var(--gold)">Fat loss that keeps muscle</b>: research on resistance-trained people supports losing ~0.5–1% of bodyweight per week with high protein (~0.7–1 g per lb — 160–180 g for you, split across 3–5 meals) plus lifting. That combo is what protects lean mass while the fat leaves — which is exactly what makes 175 look like a six-pack.<br><br><b style="color:var(--gold)">Progressive overload + deloads</b>: volume climbs for 3 weeks, then every 4th week backs off so your body absorbs the work. Strength uses double progression — with fixed 25 lb dumbbells, own the top of the rep range, then add a rep or slow the tempo.<br><br><b style="color:var(--gold)">Sub-3 marathon reality</b>: 2:59:59 is ~6:50/mile for 26.2 — an elite-amateur goal reached in phases. Drop the weight first (it’s huge free speed — very roughly a couple seconds per mile for every pound lost), build an easy aerobic base, then layer tempo and long runs. Getting to a lean racing weight is the single biggest lever you have.<br><br><b style="color:var(--gold)">Isaac's plan — NSCA youth guidelines</b>: kids ready for sports (around age 7–8) are ready for supervised, form-first, bodyweight strength training, and it benefits bone and long-term athleticism. His engine: movement variety, low reps, fun over max effort, never maxing out.</div>
       </div>
 
       <div class="card">
@@ -881,9 +881,10 @@ function dadPlan(dow,wk){
   ["Leg raises + bicycle crunch",sN+" × 10 raises + 20 bicycles","Lower back flat — carves the lower abs."],
   ["Easy bike or walk finisher","10 min","Extra fat-burn at an easy pace."]]};}
  if(key==="run"){const r=dl?4:Math.min(8,4+Math.floor(wk/2));
-  return{t:pre+"Treadmill Run/Walk",tag:"🏃 Build the Engine",sub:"Week "+wk+" · run/walk builds a runner without wrecking the knees — this is the base for the Flying Pig 4-Way.",d:[
+  return{t:pre+"Easy Aerobic Run",tag:"🏃 Easy Miles (the 80%)",sub:"Week "+wk+" · 80% of a sub-3 marathon is built at easy, conversational pace. Run/walk now — it turns into easy running as the weight drops.",d:[
   ["Warm-up walk","5 min brisk",""],
-  ["Run/walk intervals",r+" × 2 min easy jog / 2 min walk","Jog = you could still say 3 words. Walk tall and fast."],
+  ["Easy run/walk",r+" × 2 min easy jog / 1–2 min walk","Easy = you could hold a full conversation. Keep it genuinely easy."],
+  ["Strides","6 × 20 sec relaxed-fast / walk back","Light, smooth turnover to prime speed — not a sprint."],
   ["Core finisher","2 rounds: 15 crunches, 12 leg raises, 30-sec plank","Low carb + cardio — your proven combo."],
   ["Cool-down","5 min walk + stretch",""]]};}
  if(key==="bike"){const st=dl?3:Math.min(6,4+Math.floor(wk/2)),m=wk>=4?4:3;
@@ -892,10 +893,10 @@ function dadPlan(dow,wk){
   ["Intervals",st+" × "+m+" min strong / 2 min easy","Strong but smooth — legs working, posture tall."],
   ["Core circuit","2 rounds: 15 crunches, 12 leg raises, 30-sec plank",""],
   ["Cool-down","5 min easy spin",""]]};}
- if(key==="runtempo"){const m=dl?8:Math.min(25,8+wk*2);
-  return{t:pre+"Treadmill Tempo",tag:"🏃 Get Faster",sub:"Week "+wk+" · your one truly hard run — this makes race pace feel easy later. A fast incline walk counts if jogging that long is too much yet.",d:[
-  ["Warm-up","8 min easy walk/jog",""],
-  ["Tempo",m+" min comfortably hard (jog or fast incline walk)","Steady effort you could just hold — grow the minutes week to week."],
+ if(key==="runtempo"){const m=dl?8:Math.min(30,8+wk*2);
+  return{t:pre+"Tempo · Sub-3 Pace",tag:"🏃 Threshold",sub:"Week "+wk+" · the hard day that builds sub-3 fitness. Goal marathon pace is ~6:50/mi (2:59:59) — grow the time you can hold near it. Fast incline walk counts while you build.",d:[
+  ["Warm-up","10 min easy jog/walk",""],
+  ["Tempo at goal effort",m+" min comfortably hard (toward 6:50/mi as you lean out)","Threshold = hard but controlled, a word at a time. Add minutes weekly."],
   ["Core finisher","2 rounds: 20 crunches + 30-sec side plank each side",""],
   ["Cool-down","5 min + stretch",""]]};}
  if(key==="recover"){
@@ -903,10 +904,10 @@ function dadPlan(dow,wk){
   ["Easy walk (treadmill or outside)","20–30 min","Flat, relaxed — still burns fat."],
   ["Full-body mobility","10 min — hips, hamstrings, calves, back","Happy joints = consistent running."],
   ["Light core","2 rounds: 12 crunches, 20-sec plank","Keep the daily ab habit alive."]]};}
- // longrun (Sat) — the 4-Way builder
- const m=dl?Math.round(Math.min(90,30+(wk-1)*5)*0.6):Math.min(90,30+(wk-1)*5);
- return{t:pre+"Long Run/Walk",tag:"🐷 Pig Builder",sub:"Week "+wk+" · the key day for the 4-Way — time on feet. Run/walk the whole thing, no ego.",d:[
- ["Run/walk steady",m+" min (e.g. jog 3 min / walk 1 min, repeat)","Conversational the whole way — distance now, speed later."],
+ // longrun (Sat) — the marathon builder
+ const m=dl?Math.round(Math.min(150,45+(wk-1)*8)*0.6):Math.min(150,45+(wk-1)*8);
+ return{t:pre+"Long Run · Marathon Builder",tag:"🐷 The Big One",sub:"Week "+wk+" · the cornerstone of a sub-3 marathon — time on feet building toward 20 miles. Run/walk now; later the final miles come down toward 6:50/mi goal pace.",d:[
+ ["Long run/walk",m+" min steady (jog 3–4 min / walk 1, repeat)","Conversational most of the way. Distance first; goal-pace finishes come later."],
  ["Core circuit","3 rounds: 15 crunches, 12 leg raises, 30-sec plank",""],
  ["Stretch hips + calves + back","5–8 min",""]]};
 }
@@ -936,7 +937,7 @@ function dadPlanToday(){
  return plan;
 }
 
-const PATH=[["Start line","Move every day + low carb"],["First 10 lbs down","The hardest part is behind you"],["Halfway to 175","Clothes fit different, energy climbs"],["Hit 175 lbs","Goal weight — then carve the abs"],["Six-pack visible","A few lbs leaner — the abs show"],["Flying Pig 4-Way","all four races over Pig weekend"]];
+const PATH=[["Start line","Move every day + low carb"],["First 10 lbs down","The hardest part is behind you"],["Halfway to 175","Clothes fit different, energy climbs"],["Hit 175 lbs","Goal weight — then carve the abs"],["Six-pack visible","A few lbs leaner — the abs show"],["Sub-3 Marathon 🐷","Flying Pig 4-Way weekend · 2:59:59 goal"]];
 const RACES=[
 ["Flying Pig 4-Way ⭐ your goal","Cincinnati · Pig weekend, early May · the four-race challenge","Challenge"],
 ["Flying Pig Marathon & Half","Cincinnati · typically early May","Marathon / Half"],
@@ -1358,7 +1359,7 @@ async function askCoach(p){
   const sm=await window.claude.use("sample");
   if(sm){
    const r=await sm("You are the head coach of an elite sports performance facility — part nutritionist, endurance coach, QB coach, strength coach and life coach. "+(p==="dad"
-    ?"Your athlete: adult male, currently heavy, losing weight to get lean — near-term goal 175 lb with a visible six-pack, and building toward the Flying Pig 4-Way (the four-race Pig-weekend challenge) next May. His proven approach is LOW-CARB eating + cardio. Home gear only: 25 lb dumbbells, a treadmill and a bike; he trains something every day. Reply UNDER 110 words, direct and warm, second person: 1) one-line read on his week, 2) two specific adjustments for tomorrow's workout using only that gear, 3) one low-carb nutrition cue for a steady deficit with high protein. Never suggest under 1700 calories/day or extreme methods. Close with one mindset line — he is also modeling discipline for his 8-year-old son who trains with him. Respect easy-days-easy / hard-days-hard and the every-4th-week deload."
+    ?"Your athlete: adult male, currently heavy, losing weight to get lean — near-term goal 175 lb with a visible six-pack, and building toward a sub-3 marathon (~6:50/mi) at the Flying Pig 4-Way next May. His proven approach is LOW-CARB eating + cardio. Home gear only: 25 lb dumbbells, a treadmill and a bike; he trains something every day. Reply UNDER 110 words, direct and warm, second person: 1) one-line read on his week, 2) two specific adjustments for tomorrow's workout using only that gear, 3) one low-carb nutrition cue for a steady deficit with high protein. Never suggest under 1700 calories/day or extreme methods. Close with one mindset line — he is also modeling discipline for his 8-year-old son who trains with him. Respect easy-days-easy / hard-days-hard and the every-4th-week deload."
     :"Your athlete: an 8-year-old boy training to be a starting QB, basketball in season. Reply UNDER 80 words, super encouraging and fun, second person, ZERO diet or weight talk: 1) hype his effort, 2) one focus for tomorrow, 3) one confidence or leadership challenge. Channel the calm-swagger Dart aura: composed under pressure, confident body language, lifts his teammates.")
     +" His data: "+JSON.stringify(data),{cache:false});
    text=r&&r.text?r.text.trim():"";
@@ -1455,7 +1456,7 @@ function renderDadToday(){
  const lw=state.dad.weights[state.dad.weights.length-1].w;
  const toGo=Math.max(0,Math.round((lw-175)*10)/10);
  $("cruiseDays").textContent=toGo>0?toGo+" lb to go":"at goal 🎉";
- $("cruiseLine").textContent=toGo>0?("Lose weight to 175 first, build toward the Flying Pig 4-Way next May. "+toGo+" lb to go — low-carb + daily cardio is your proven formula. Aim ~1–2 lb/week; the running base grows underneath it."):("🎉 At 175! Now it's all about the 4-Way — keep building those long run/walks.");
+ $("cruiseLine").textContent=toGo>0?("Lose weight to 175 first, then chase a sub-3 marathon (~6:50/mi) at the Flying Pig 4-Way next May. "+toGo+" lb to go — low-carb + daily cardio is your formula, and every pound you drop is free speed. Aim ~1–2 lb/week while the base builds."):("🎉 At 175! Now it's all about the 4-Way — keep building those long run/walks.");
  $("coachMsgD").textContent="🎙️ Coach: "+COACHD[doy()%COACHD.length];
  const nl2=$("dNutList");nl2.innerHTML="";
  DNUT.forEach((f,i)=>{
