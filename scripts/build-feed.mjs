@@ -1,17 +1,12 @@
 import Parser from 'rss-parser';
 import { writeFileSync } from 'fs';
 
-const parser = new Parser({
-  timeout: 20000,
-  headers: { 'User-Agent': 'Mozilla/5.0 IronSharpensIron-news-aggregator' },
-  customFields: { item: [['media:thumbnail','mediaThumb'], ['media:content','mediaContent']] }
-});
+const parser = new Parser({ customFields: { item: [['media:thumbnail','mediaThumb'], ['media:content','mediaContent']] } });
 
 const GNsearch = q => `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
 const GNtopic  = t => `https://news.google.com/rss/headlines/section/topic/${t}?hl=en-US&gl=US&ceid=US:en`;
 const YT       = id => `https://www.youtube.com/feeds/videos.xml?channel_id=${id}`;
 
-// Source-diverse, straight-news leaning. Google News aggregates many outlets per query.
 const SOURCES = [
   { category:'local',  kind:'article', limit:14, url: GNsearch('Cincinnati OR "Greater Cincinnati"') },
   { category:'us',     kind:'article', limit:14, url: GNtopic('NATION') },
@@ -32,12 +27,17 @@ function imageOf(item,kind){
   if(item.enclosure && item.enclosure.url) return item.enclosure.url;
   return '';
 }
-
-const out=[]; const seen=new Set();
-for(const s of SOURCES){
+async function getText(url){
+  const ac=new AbortController(); const timer=setTimeout(()=>ac.abort(), 12000);
+  try{ const r=await fetch(url,{signal:ac.signal, headers:{'User-Agent':'Mozilla/5.0 ISI-news-aggregator'}}); if(!r.ok) throw new Error('HTTP '+r.status); return await r.text(); }
+  finally{ clearTimeout(timer); }
+}
+async function one(s){
+  const items=[];
   try{
-    const feed = await parser.parseURL(s.url);
-    const chan = feed.title || '';
+    const xml=await getText(s.url);
+    const feed=await parser.parseString(xml);
+    const chan=feed.title||'';
     let n=0;
     for(const it of (feed.items||[])){
       if(n>=s.limit) break;
@@ -47,13 +47,23 @@ for(const s of SOURCES){
       else if(s.url.includes('news.google.com')){ const sp=splitTitle(title); title=sp.title; src=sp.src; }
       else src=chan;
       const link=it.link||''; if(!link) continue;
-      const key=title.toLowerCase().slice(0,60);
-      if(seen.has(key)) continue; seen.add(key);
-      out.push({ title, link, source:src, category:s.category, kind:s.kind, date: it.isoDate || it.pubDate || '', image: imageOf(it,s.kind) });
+      items.push({ title, link, source:src, category:s.category, kind:s.kind, date: it.isoDate || it.pubDate || '', image: imageOf(it,s.kind) });
       n++;
     }
-    console.log('ok', s.category, s.url.slice(0,50), '->', n);
-  }catch(e){ console.error('FAIL', s.url, e.message); }
+    console.log('ok', s.category, '->', items.length);
+  }catch(e){ console.error('FAIL', s.category, s.url.slice(0,45), e.message); }
+  return items;
+}
+
+const results = await Promise.allSettled(SOURCES.map(one));
+const out=[]; const seen=new Set();
+for(const r of results){
+  if(r.status!=='fulfilled') continue;
+  for(const it of r.value){
+    const key=it.title.toLowerCase().slice(0,60);
+    if(seen.has(key)) continue; seen.add(key);
+    out.push(it);
+  }
 }
 out.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
 const feed = { updated:new Date().toISOString(), count:out.length, items: out.slice(0,120) };
