@@ -9,7 +9,7 @@ const YT       = id => `https://www.youtube.com/feeds/videos.xml?channel_id=${id
 
 const SOURCES = [
   // Local
-  { category:'local',  kind:'article', limit:14, url: GNsearch('Cincinnati OR "Greater Cincinnati"') },
+  { category:'local',  kind:'article', limit:14, url: GNsearch('"Northern Kentucky" OR "Independence, Kentucky" OR "Kenton County" OR Cincinnati OR "Greater Cincinnati"') },
   // US (image-rich outlets + Google News for source diversity)
   { category:'us',     kind:'article', limit:8,  url: 'https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml' },
   { category:'us',     kind:'article', limit:8,  url: 'https://feeds.npr.org/1003/rss.xml' },
