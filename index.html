@@ -78,6 +78,12 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .gcard .gt{font-family:'Lilita One';font-size:16px;color:var(--ink)}
 .gcard .gv{font-style:italic;color:var(--sky);margin-top:4px;line-height:1.5;font-size:14px}
 .gcard .gb{color:var(--muted);margin-top:4px;line-height:1.55;font-size:14px}
+.fcard{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:10px}
+.fcard .fmeta{font-size:11px;color:var(--orange);font-weight:800;letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
+.fcard .gt{font-family:'Lilita One';font-size:16px;color:var(--ink)}
+.fcard .gv{font-style:italic;color:var(--sky);margin-top:4px;line-height:1.5;font-size:14px}
+.fcard .gb{color:var(--muted);margin-top:4px;line-height:1.55;font-size:14px}
+.fcard .badges{margin-top:8px}
 
 /* Header */
 .top{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 0}
@@ -606,10 +612,11 @@ input,button{font-size:16px} /* prevent iOS zoom */
         <div class="muted" id="growFocus" style="margin-top:6px;line-height:1.6"></div>
       </div>
       <div class="card">
-        <h2>📚 Build the man</h2>
-        <div class="muted" style="margin-top:4px">Leader · speaker · businessman · father · closer to God.</div>
+        <div class="plan-head"><h2>📚 Learning Feed</h2><span class="tag">keep scrolling</span></div>
+        <div class="muted" style="margin-top:4px">Scroll to learn instead of scrolling shorts — lessons, videos and podcast clips on leadership, speaking, business, fatherhood, faith, tech, AI and investing. Fresh every time.</div>
         <div class="growchips" id="growChips"></div>
         <div id="growList" style="margin-top:6px"></div>
+        <button class="bigbtn ghost" id="growMore" style="margin-top:12px">Load more ↓</button>
       </div>
     </section>
 
@@ -1088,10 +1095,59 @@ faith:[
 ["Galatians 6:9","And let us not be weary in well doing: for in due season we shall reap, if we faint not.","The harvest comes to those who don\u2019t quit. Keep sowing."],
 ["Matthew 6:33","But seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you.","Put God first and the rest finds its order. Priorities before productivity."],
 ["Psalm 1:1-3","...his delight is in the law of the LORD... he shall be like a tree planted by the rivers of water.","Roots determine fruit. Feed your soul daily and you\u2019ll stand through dry seasons."]
+],
+tech:[
+["Learn one shortcut a week","Small automations compound. A keyboard shortcut used daily is hours saved a year."],
+["Back up in three places","Your phone, the cloud, and one more. If it isn’t backed up, it doesn’t exist."],
+["Use a password manager","One strong master password beats 50 weak reused ones. Set it up once."],
+["Turn off noisy notifications","Every ping taxes your focus. Keep only what truly needs you now."],
+["Turn on 2FA","Two-factor stops most account hacks cold. Start with email and banking."],
+["Search like a pro","Put exact phrases in quotes; add site: to search one site. Better questions, better answers."],
+["Batch your screen time","Check messages at set times, not constantly. Attention is your real currency."],
+["Keep software updated","Updates patch the holes attackers use. Don’t ‘remind me later’ forever."]
+],
+ai:[
+["AI is a tool, not magic","Treat it like a sharp intern: great first drafts, always check the work."],
+["Prompt with context + goal","Say who it’s for, what you want, and the format. Specifics get better answers."],
+["Use AI to learn faster","Ask it to explain a topic like you’re 12, then have it quiz you."],
+["Let AI draft, you decide","Use it to beat the blank page, then edit with your judgment and voice."],
+["Verify before you trust","AI can sound confident and be wrong. Check the facts that matter."],
+["Automate the boring stuff","Emails, summaries, outlines, plans — hand off the repetitive, keep the thinking."],
+["Garbage in, garbage out","The clearer the info you give it, the better it performs."],
+["Ten minutes a week","AI moves fast. A little steady curiosity keeps you ahead of most people."]
+],
+investing:[
+["Pay yourself first","Invest before you spend, not what’s left over. Automate it so you never see it."],
+["Time in beats timing","Consistent investing over years beats trying to call the top and bottom."],
+["Low-cost index funds","Most pros don’t beat the market after fees. A broad index fund is a solid default."],
+["Compound interest is the engine","Money makes money, and that money makes money. Start early, stay in."],
+["Emergency fund first","3–6 months of expenses in cash before investing aggressively. It’s your seatbelt."],
+["Kill high-interest debt","Paying off a 20% card is a guaranteed 20% return. Do it before investing extra."],
+["Diversify","Don’t bet the farm on one stock. Spread the risk."],
+["Ignore the noise","Headlines sell fear and hype. Stick to your plan; check the balance rarely."]
 ]
 };
-const GROWCATS=[["leadership","🧭 Leadership"],["speaking","🎤 Speaking"],["business","💼 Business"],["father","👨‍👦 Father"],["faith","✝️ Faith"]];
-var growCat="leadership";
+const GROWCATS=[["leadership","🧭 Leadership"],["speaking","🎤 Speaking"],["business","💼 Business"],["father","👨‍👦 Father"],["faith","✝️ Faith"],["tech","💻 Tech"],["ai","🤖 AI"],["investing","📈 Investing"]];
+var feedCat="all",feedPool=[],feedCount=12;
+const GROWMEDIA=[
+["leadership","watch","How great leaders inspire action","simon sinek start with why ted talk"],
+["leadership","listen","Leadership habits — podcast","leadership podcast clips"],
+["speaking","watch","Public speaking tips that work","public speaking tips ted talk"],
+["speaking","listen","Storytelling for speakers","storytelling public speaking podcast"],
+["business","watch","How businesses actually make money","how business models work explained"],
+["business","listen","Small business lessons","small business podcast clips"],
+["father","watch","Being a better dad","intentional fatherhood talk"],
+["father","listen","Fatherhood wisdom","fatherhood podcast"],
+["faith","watch","A short Bible teaching","short bible devotional teaching"],
+["faith","listen","Daily devotional podcast","daily bible devotional podcast"],
+["tech","watch","This week in tech","latest tech news this week explained"],
+["tech","listen","Tech explained simply","tech news podcast"],
+["ai","watch","What’s new in AI","latest ai news explained this week"],
+["ai","listen","AI for everyday people","ai podcast for beginners"],
+["investing","watch","Investing basics in 10 minutes","investing for beginners explained"],
+["investing","listen","Personal finance podcast","personal finance podcast clips"]
+];
+const FEEDCATS=[["all","🔥 For You"]].concat(GROWCATS);
 const QUICKFOODS=[["Eggs (2)",140],["Chicken breast",280],["Protein shake",160],["Greek yogurt",120],["Banana",105],["Oatmeal bowl",300],["Turkey sandwich",350],["Rice + chicken bowl",550],["Salad + protein",400],["Slice of pizza",290]];
 
 const COACHD=[
@@ -1935,18 +1991,44 @@ function pjMilestoneDate(i,cur,rate){
  var weeks=Math.ceil(lbs/rate);
  return pjFmtDate(new Date(Date.now()+weeks*7*86400000));
 }
+function gshuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function feedItems(cat){var items=[];Object.keys(GROW).forEach(function(c){if(cat==="all"||cat===c){GROW[c].forEach(function(it){if(c==="faith")items.push({type:"verse",cat:c,title:it[0],verse:it[1],body:it[2]});else items.push({type:"lesson",cat:c,title:it[0],body:it[1]});});}});GROWMEDIA.forEach(function(m){if(cat==="all"||cat===m[0])items.push({type:m[1],cat:m[0],title:m[2],query:m[3]});});return items;}
+function catLabel(c){var g=GROWCATS.find(function(x){return x[0]===c;});return g?g[1]:c;}
+function feedCard(it){
+ var el=document.createElement("div");el.className="fcard";
+ if(it.type==="verse"){
+  el.innerHTML='<div class="fmeta"></div><div class="gt"></div><div class="gv"></div><div class="gb"></div>';
+  el.querySelector(".fmeta").textContent="✝️ "+catLabel(it.cat);
+  el.querySelector(".gt").textContent=it.title;
+  el.querySelector(".gv").textContent="“"+it.verse+"”";
+  el.querySelector(".gb").textContent="💡 "+it.body;
+ }else if(it.type==="watch"||it.type==="listen"){
+  el.innerHTML='<div class="fmeta"></div><div class="gt"></div><div class="badges"></div>';
+  el.querySelector(".fmeta").textContent=(it.type==="watch"?"▶ ":"🎧 ")+catLabel(it.cat);
+  el.querySelector(".gt").textContent=it.title;
+  var a=document.createElement("a");a.className="mini vid";a.target="_blank";a.rel="noopener";a.textContent=(it.type==="watch"?"▶ Watch":"🎧 Listen");a.href=yt(it.type==="listen"?(it.query+" podcast"):it.query);
+  el.querySelector(".badges").appendChild(a);
+ }else{
+  el.innerHTML='<div class="fmeta"></div><div class="gt"></div><div class="gb"></div>';
+  el.querySelector(".fmeta").textContent="💡 "+catLabel(it.cat);
+  el.querySelector(".gt").textContent=it.title;
+  el.querySelector(".gb").textContent=it.body;
+ }
+ return el;
+}
+function renderFeed(){
+ var box=$("growList");if(!box)return;
+ if(!feedPool.length)feedPool=gshuffle(feedItems(feedCat));
+ while(feedCount>feedPool.length)feedPool=feedPool.concat(gshuffle(feedItems(feedCat)));
+ box.innerHTML="";var show=Math.min(feedCount,feedPool.length);
+ for(var i=0;i<show;i++)box.appendChild(feedCard(feedPool[i]));
+}
 function renderDadGrow(){
  var flat=[];Object.keys(GROW).forEach(function(c){GROW[c].forEach(function(it){flat.push([c,it]);});});
- var pick=flat[doy()%flat.length];var cat=pick[0],it=pick[1];
- var lbl=(GROWCATS.find(function(g){return g[0]===cat;})||["",""])[1];
- var fe=$("growFocus");
- if(fe){if(cat==="faith")fe.innerHTML="<b style=\"color:var(--gold)\">"+lbl+" \u00b7 "+it[0]+"</b><br>\u201c"+it[1]+"\u201d<br><span style=\"color:var(--muted)\">\ud83d\udca1 "+it[2]+"</span>";
-  else fe.innerHTML="<b style=\"color:var(--gold)\">"+lbl+" \u00b7 "+it[0]+"</b><br><span style=\"color:var(--muted)\">"+it[1]+"</span>";}
- var ch=$("growChips");if(ch){ch.innerHTML="";GROWCATS.forEach(function(g){var b=document.createElement("button");b.className=(growCat===g[0]?"on":"");b.textContent=g[1];b.addEventListener("click",function(){growCat=g[0];renderDadGrow();});ch.appendChild(b);});}
- var box=$("growList");if(box){box.innerHTML="";(GROW[growCat]||[]).forEach(function(it){var el=document.createElement("div");el.className="gcard";
-  if(growCat==="faith"){el.innerHTML='<div class="gt"></div><div class="gv"></div><div class="gb"></div>';el.querySelector(".gt").textContent=it[0];el.querySelector(".gv").textContent="\u201c"+it[1]+"\u201d";el.querySelector(".gb").textContent="\ud83d\udca1 "+it[2];}
-  else{el.innerHTML='<div class="gt"></div><div class="gb"></div>';el.querySelector(".gt").textContent=it[0];el.querySelector(".gb").textContent=it[1];}
-  box.appendChild(el);});}
+ var pick=flat[doy()%flat.length];var fe=$("growFocus");
+ if(fe){var c=pick[0],it=pick[1];if(c==="faith")fe.textContent="✝️ "+catLabel(c)+" · "+it[0]+" — “"+it[1]+"” 💡 "+it[2];else fe.textContent="⭐ "+catLabel(c)+" · "+it[0]+" — "+it[1];}
+ var ch=$("growChips");if(ch){ch.innerHTML="";FEEDCATS.forEach(function(g){var b=document.createElement("button");b.className=(feedCat===g[0]?"on":"");b.textContent=g[1];b.addEventListener("click",function(){feedCat=g[0];feedPool=gshuffle(feedItems(feedCat));feedCount=12;renderFeed();});ch.appendChild(b);});}
+ feedPool=gshuffle(feedItems(feedCat));feedCount=12;renderFeed();
 }
 function renderDadPlan(){
  renderProjection();
@@ -1990,6 +2072,7 @@ $("scanAI").addEventListener("click",scanTeach);
 var _pc=$("prepCopy");if(_pc)_pc.addEventListener("click",copyPlan);
 var _pcl=$("prepClear");if(_pcl)_pcl.addEventListener("click",function(){state.dad.prepSel=[];scheduleSave();renderMealIdeas();renderWeek();toast("Selections cleared");});
 var _wr=$("weekRefresh");if(_wr)_wr.addEventListener("click",function(){renderWeek();toast("Week rebuilt");});
+var _gm=$("growMore");if(_gm)_gm.addEventListener("click",function(){feedCount+=8;renderFeed();});
 
 /* ============ BACKUP / RESTORE ============ */
 function exportBackup(){
