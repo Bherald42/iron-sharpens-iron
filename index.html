@@ -64,6 +64,12 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
 .idea button{white-space:nowrap}
 .idea .pck{width:22px;height:22px;flex:0 0 auto;accent-color:var(--gold);cursor:pointer}
 .prepbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.idea .ibtns{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}
+.idea .irec{font-size:12.5px;color:var(--sky);margin-top:6px;white-space:pre-line;line-height:1.5}
+.wday{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.wday:last-child{border-bottom:none}
+.wday .wd-name{font-family:'Lilita One';color:var(--gold);width:44px;flex:0 0 auto}
+.wday .wd-meals{font-size:12.5px;color:var(--muted);line-height:1.5}
 
 /* Header */
 .top{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 0}
@@ -535,7 +541,13 @@ input,button{font-size:16px} /* prevent iOS zoom */
         <div class="muted" id="prepWeek" style="margin-top:6px"></div>
         <div class="muted" style="margin-top:6px">Tap <b>+ Log</b> to eat it today, or <b>check the box</b> to add it to your meal-prep list.</div>
         <div id="ideaList"></div>
-        <div class="prepbar"><span class="muted" id="prepCount"></span><span><button class="mini" id="prepClear">Clear</button> &nbsp; <button class="mini" id="prepCopy">📋 Copy list</button></span></div>
+        <div class="prepbar"><span class="muted" id="prepCount"></span><span><button class="mini" id="prepClear">Clear</button> &nbsp; <button class="mini" id="prepCopy">📋 Copy full plan</button></span></div>
+      </div>
+
+      <div class="card">
+        <div class="plan-head"><h2>📅 My Week</h2><button class="mini" id="weekRefresh">↻ Rebuild</button></div>
+        <div class="muted" style="margin-top:4px">Auto-built from your checked meals (or all ideas if none picked). Tap <b>Copy full plan</b> above to share the week, recipes with portions, and the grocery list.</div>
+        <div id="weekList" style="margin-top:8px"></div>
       </div>
 
       <div class="card">
@@ -967,32 +979,32 @@ const RACES=[
 ];
 const MEALIDEAS={
 Breakfast:[
-["Veggie + mushroom omelet (3 eggs, feta)",320,24,2,"g","veg","eggs, mushrooms, bell pepper, spinach, feta"],
-["Greek yogurt + berries + almonds",250,20,10,"g","fruit","Greek yogurt, mixed berries, almonds"],
-["Avocado + 2 eggs + salsa",300,16,2,"g","veg","eggs, avocado, salsa"],
-["Protein shake + a handful of almonds",300,32,4,"g","","protein powder, almond milk, almonds"]
+["Veggie + mushroom omelet (3 eggs, feta)",320,24,2,"g","veg","eggs, mushrooms, bell pepper, spinach, feta","3 eggs, 1/2 cup mushrooms, 1/4 bell pepper, handful spinach, 2 tbsp feta, 1 tsp oil","Saute veggies 2 min, pour in beaten eggs, add feta, fold and cook 3 min."],
+["Greek yogurt + berries + almonds",250,20,10,"g","fruit","Greek yogurt, mixed berries, almonds","3/4 cup plain Greek yogurt, 1/2 cup berries, 2 tbsp almonds","Top yogurt with berries and almonds."],
+["Avocado + 2 eggs + salsa",300,16,2,"g","veg","eggs, avocado, salsa","2 eggs, 1/2 avocado, 2 tbsp salsa","Fry or scramble the eggs; serve with sliced avocado and salsa."],
+["Protein shake + a handful of almonds",300,32,4,"g","","protein powder, almond milk, almonds","1 scoop protein, 1 cup almond milk, 2 tbsp almonds","Blend the shake; eat almonds on the side."]
 ],
 Lunch:[
-["Mediterranean chicken bowl (greens, olives, feta, cucumber, olive oil)",500,40,5,"g","veg","chicken breast, mixed greens, olives, feta, cucumber, cherry tomatoes, olive oil"],
-["Grilled chicken wrap (low-carb tortilla + veggies)",430,35,3,"g","veg","chicken breast, low-carb tortillas, lettuce, tomato, cheese"],
-["Big salad + grilled chicken, olives + avocado",460,38,4,"g","veg","chicken breast, mixed greens, olives, avocado, salad dressing"],
-["Mexican chicken bowl (lettuce, salsa, guac, cheese \u2014 skip the rice)",500,36,6,"g","veg","chicken breast, romaine, salsa, guacamole, shredded cheese, lime"]
+["Mediterranean chicken bowl (greens, olives, feta, cucumber, olive oil)",500,40,5,"g","veg","chicken breast, mixed greens, olives, feta, cucumber, cherry tomatoes, olive oil","5 oz grilled chicken, 2 cups greens, 10 olives, 2 tbsp feta, 1/2 cucumber, cherry tomatoes, 1 tbsp olive oil","Slice chicken over greens; add olives, feta, cucumber, tomatoes; drizzle oil + lemon."],
+["Grilled chicken wrap (low-carb tortilla + veggies)",430,35,3,"g","veg","chicken breast, low-carb tortillas, lettuce, tomato, cheese","5 oz chicken, 1 low-carb tortilla, lettuce, tomato, 1 slice cheese","Fill tortilla with chicken and veggies; roll and grill 1 min."],
+["Big salad + grilled chicken, olives + avocado",460,38,4,"g","veg","chicken breast, mixed greens, olives, avocado, salad dressing","5 oz chicken, 3 cups greens, 10 olives, 1/2 avocado, 2 tbsp dressing","Toss everything together."],
+["Mexican chicken bowl (lettuce, salsa, guac, cheese \u2014 skip the rice)",500,36,6,"g","veg","chicken breast, romaine, salsa, guacamole, shredded cheese, lime","5 oz chicken, 2 cups romaine, 1/4 cup salsa, 2 tbsp guac, 2 tbsp cheese, lime","Layer chicken over romaine; top with salsa, guac, cheese, a squeeze of lime."]
 ],
 Dinner:[
-["Grilled chicken + roasted mushrooms + salad",470,45,5,"g","veg","chicken breast, mushrooms, mixed greens, olive oil"],
-["Baked salmon + roasted veggies",500,40,4,"g","veg","salmon, broccoli, zucchini, olive oil"],
-["Chicken-stuffed peppers + side salad",420,34,8,"g","veg","ground chicken, bell peppers, onion, cheese, mixed greens"],
-["Shrimp + zucchini noodles + salad",400,35,5,"g","veg","shrimp, zucchini, garlic, olive oil, mixed greens"]
+["Grilled chicken + roasted mushrooms + salad",470,45,5,"g","veg","chicken breast, mushrooms, mixed greens, olive oil","6 oz chicken, 1 cup mushrooms, 2 cups greens, 1 tbsp oil","Grill chicken; roast mushrooms at 400F for 15 min; serve with a side salad."],
+["Baked salmon + roasted veggies",500,40,4,"g","veg","salmon, broccoli, zucchini, olive oil","6 oz salmon, 1 cup broccoli, 1 cup zucchini, 1 tbsp oil","Bake salmon + veggies at 400F for 15-18 min."],
+["Chicken-stuffed peppers + side salad",420,34,8,"g","veg","ground chicken, bell peppers, onion, cheese, mixed greens","5 oz ground chicken, 2 bell peppers, 1/4 onion, 2 tbsp cheese","Cook chicken + onion; stuff peppers; top with cheese; bake 400F for 20 min."],
+["Shrimp + zucchini noodles + salad",400,35,5,"g","veg","shrimp, zucchini, garlic, olive oil, mixed greens","6 oz shrimp, 2 zucchini (spiralized), 1 clove garlic, 1 tbsp oil","Saute shrimp + garlic 3 min; add zucchini noodles 2-3 min."]
 ],
 Snacks:[
-["Olives (a handful)",70,0,0,"g","","olives"],
-["Raw veggies + guac or hummus",150,4,4,"g","veg","carrots, celery, bell peppers, guacamole, hummus"],
-["Cheese + a few nuts",200,10,2,"g","","cheese, mixed nuts"],
-["2 hard-boiled eggs",140,12,1,"g","","eggs"],
-["Apple + almond butter",200,6,16,"y","fruit","apples, almond butter"],
-["Berries + a handful of nuts",160,5,9,"g","fruit","mixed berries, mixed nuts"],
-["Post-run: protein shake + banana",270,30,18,"y","fruit","protein powder, bananas"],
-["Post-run: Greek yogurt + fruit + honey",260,18,24,"y","fruit","Greek yogurt, fruit, honey"]
+["Olives (a handful)",70,0,0,"g","","olives","10-12 olives","Grab and go."],
+["Raw veggies + guac or hummus",150,4,4,"g","veg","carrots, celery, bell peppers, guacamole, hummus","1 cup veggie sticks, 2-3 tbsp guac or hummus","Dip and enjoy."],
+["Cheese + a few nuts",200,10,2,"g","","cheese, mixed nuts","1 oz cheese, 1 oz mixed nuts","Portion and snack."],
+["2 hard-boiled eggs",140,12,1,"g","","eggs","2 eggs","Boil 9-10 min, cool, peel."],
+["Apple + almond butter",200,6,16,"y","fruit","apples, almond butter","1 apple, 1 tbsp almond butter","Slice apple; dip in almond butter."],
+["Berries + a handful of nuts",160,5,9,"g","fruit","mixed berries, mixed nuts","1/2 cup berries, 1 oz nuts","Combine."],
+["Post-run: protein shake + banana",270,30,18,"y","fruit","protein powder, bananas","1 scoop protein, 1 banana, water or milk","Blend; drink within 30 min of finishing."],
+["Post-run: Greek yogurt + fruit + honey",260,18,24,"y","fruit","Greek yogurt, fruit, honey","3/4 cup Greek yogurt, 1/2 cup fruit, 1 tsp honey","Mix and eat after your run."]
 ]
 };
 const QUICKFOODS=[["Eggs (2)",140],["Chicken breast",280],["Protein shake",160],["Greek yogurt",120],["Banana",105],["Oatmeal bowl",300],["Turkey sandwich",350],["Rice + chicken bowl",550],["Salad + protein",400],["Slice of pizza",290]];
@@ -1533,46 +1545,50 @@ const WEEKPREP=[
 "Mexican prep: shredded chicken, salsa, guac, shredded cheese, romaine. Portion berries + nuts for the week’s snacks.",
 "Shrimp + zucchini nights x2, plus roasted veggies. Hard-boil eggs and pre-portion Greek yogurt cups with berries."
 ];
-function prepCount(){var n=(state.dad.prepSel||[]).length;var e=$("prepCount");if(e)e.textContent=n?(n+" selected for prep"):"Check boxes to build your prep list";}
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+function prepCount(){var n=(state.dad.prepSel||[]).length;var e=$("prepCount");if(e)e.textContent=n?(n+" selected for prep"):"Check boxes to build your week";}
+function mealShort(it){return it?it[0].replace(/\s*\([^)]*\)/g,"").trim():"-";}
 function renderMealIdeas(){
  const box=$("ideaList");if(!box)return;
  if($("ideaMeal"))$("ideaMeal").textContent=curMeal;
- if($("prepWeek"))$("prepWeek").textContent="\ud83e\uddfa This week\u2019s prep: "+WEEKPREP[(Math.max(1,weekNum())-1)%WEEKPREP.length];
+ if($("prepWeek"))$("prepWeek").textContent="🧺 This week’s prep: "+WEEKPREP[(Math.max(1,weekNum())-1)%WEEKPREP.length];
  var sel=state.dad.prepSel||(state.dad.prepSel=[]);
  const items=MEALIDEAS[curMeal]||[];
  box.innerHTML="";
  items.forEach(function(it){
   const el=document.createElement("div");el.className="idea";
-  el.innerHTML='<input type="checkbox" class="pck"><div class="itxt"><div class="iname"></div><div class="imac"></div></div><button class="mini">+ Log</button>';
+  el.innerHTML='<input type="checkbox" class="pck"><div class="itxt"><div class="iname"></div><div class="imac"></div><div class="irec hidden"></div></div><div class="ibtns"><button class="mini irecbtn">Recipe ▾</button><button class="mini">+ Log</button></div>';
   el.querySelector(".iname").textContent=it[0];
-  el.querySelector(".imac").textContent="~"+it[1]+" cal \u00b7 "+it[2]+"g protein"+(it[3]?(" \u00b7 "+it[3]+"g sugar"):"");
+  el.querySelector(".imac").textContent="~"+it[1]+" cal · "+it[2]+"g protein"+(it[3]?(" · "+it[3]+"g sugar"):"");
+  var rec=el.querySelector(".irec");rec.textContent="Ingredients: "+(it[7]||it[6]||"")+(it[8]?("\nMethod: "+it[8]):"");
+  var rb=el.querySelector(".irecbtn");rb.addEventListener("click",function(){rec.classList.toggle("hidden");rb.textContent=rec.classList.contains("hidden")?"Recipe ▾":"Recipe ▴";});
   var cb=el.querySelector(".pck");cb.checked=sel.indexOf(it[0])>=0;
-  cb.addEventListener("change",function(){var i=sel.indexOf(it[0]);if(cb.checked){if(i<0)sel.push(it[0]);}else if(i>=0)sel.splice(i,1);scheduleSave();prepCount();});
-  el.querySelector("button").addEventListener("click",function(){addFoodEntry(it[0],it[1],it[2],it[3],it[4],it[5]);});
+  cb.addEventListener("change",function(){var i=sel.indexOf(it[0]);if(cb.checked){if(i<0)sel.push(it[0]);}else if(i>=0)sel.splice(i,1);scheduleSave();prepCount();renderWeek();});
+  el.querySelectorAll(".ibtns button")[1].addEventListener("click",function(){addFoodEntry(it[0],it[1],it[2],it[3],it[4],it[5]);});
   box.appendChild(el);
  });
  prepCount();
 }
-function buildPrepList(){
- var sel=state.dad.prepSel||[];if(!sel.length)return "";
- var cats=["Breakfast","Lunch","Dinner","Snacks"];var out=[];var groc={};
- var stamp=new Date().toLocaleDateString(undefined,{month:"short",day:"numeric"});
- out.push("Iron Sharpens Iron \u2014 Meal Prep (week of "+stamp+")");out.push("");
- cats.forEach(function(c){
-  var picks=(MEALIDEAS[c]||[]).filter(function(it){return sel.indexOf(it[0])>=0;});
-  if(picks.length){out.push(c.toUpperCase());picks.forEach(function(it){out.push("\u2022 "+it[0]);(it[6]||"").split(",").forEach(function(g){g=g.trim();if(g)groc[g.toLowerCase()]=g;});});out.push("");}
- });
+function coursePicks(c){var sel=state.dad.prepSel||[];var all=MEALIDEAS[c]||[];var pk=all.filter(function(it){return sel.indexOf(it[0])>=0;});return pk.length?pk:all;}
+function buildWeek(){var B=coursePicks("Breakfast"),L=coursePicks("Lunch"),D=coursePicks("Dinner"),S=coursePicks("Snacks");var w=[];for(var i=0;i<7;i++){w.push({b:B[i%B.length],l:L[i%L.length],d:D[i%D.length],s:(S.length>1?[S[(i*2)%S.length],S[(i*2+1)%S.length]]:[S[0]])});}return w;}
+function renderWeek(){var box=$("weekList");if(!box)return;var w=buildWeek();box.innerHTML="";w.forEach(function(day,i){var el=document.createElement("div");el.className="wday";var sn=[day.s[0],day.s[1]].filter(Boolean).map(function(x){return mealShort(x);}).join(", ");el.innerHTML='<div class="wd-name"></div><div class="wd-meals"></div>';el.querySelector(".wd-name").textContent=DAYS[i];el.querySelector(".wd-meals").textContent="B: "+mealShort(day.b)+"  ·  L: "+mealShort(day.l)+"  ·  D: "+mealShort(day.d)+"  ·  Snacks: "+sn;box.appendChild(el);});}
+function buildPlanText(){
+ var w=buildWeek();var stamp=new Date().toLocaleDateString(undefined,{month:"short",day:"numeric"});var out=[];
+ out.push("Iron Sharpens Iron — Weekly Meal Plan (week of "+stamp+")");out.push("");
+ out.push("THE WEEK");
+ w.forEach(function(day,i){var sn=[day.s[0],day.s[1]].filter(Boolean).map(function(x){return x[0];}).join(", ");out.push(DAYS[i]+" — B: "+(day.b?day.b[0]:"-")+" | L: "+(day.l?day.l[0]:"-")+" | D: "+(day.d?day.d[0]:"-")+" | Snacks: "+sn);});
+ out.push("");
+ var counts={},order=[];
+ w.forEach(function(day){[day.b,day.l,day.d,day.s[0],day.s[1]].filter(Boolean).forEach(function(it){if(!(it[0] in counts)){counts[it[0]]=0;order.push(it);}counts[it[0]]++;});});
+ out.push("RECIPES (with portions)");
+ order.forEach(function(it){out.push("");out.push(it[0]+"  (x"+counts[it[0]]+" this week · ~"+it[1]+" cal, "+it[2]+"g protein)");out.push("Ingredients: "+(it[7]||it[6]||""));if(it[8])out.push("Method: "+it[8]);});
+ out.push("");
+ var groc={};order.forEach(function(it){(it[6]||"").split(",").forEach(function(g){g=g.trim();if(g)groc[g.toLowerCase()]=g;});});
  var gl=Object.keys(groc).sort().map(function(k){return groc[k];});
  if(gl.length){out.push("GROCERY LIST");out.push(gl.join(", "));}
  return out.join("\n");
 }
-function copyPrepList(){
- var txt=buildPrepList();
- if(!txt){toast("Check a few items first");return;}
- function ok(){toast("Copied \u2014 paste it to share \u2713");}
- function fb(){try{var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();var g=document.execCommand("copy");ta.remove();if(g)ok();else window.prompt("Copy your meal-prep list:",txt);}catch(e){window.prompt("Copy your meal-prep list:",txt);}}
- if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok).catch(fb);}else fb();
-}
+function copyPlan(){var txt=buildPlanText();if(!txt){toast("Add some meals first");return;}function ok(){toast("Plan copied — paste it to share ✓");}function fb(){try{var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();var g=document.execCommand("copy");ta.remove();if(g)ok();else window.prompt("Copy your meal plan:",txt);}catch(e){window.prompt("Copy your meal plan:",txt);}}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok).catch(fb);}else fb();}
 function renderDadFood(){
  const items=todayFood();
  const total=items.reduce((a,b)=>a+(Number(b.cal)||0),0);
@@ -1600,6 +1616,7 @@ function renderDadFood(){
  const mp=$("mealPills");mp.innerHTML="";
  MEALS.forEach(m=>{const b=document.createElement("button");b.className="mp"+(curMeal===m?" on":"");b.textContent=m;b.addEventListener("click",()=>{curMeal=m;renderDadFood();});mp.appendChild(b);});
  renderMealIdeas();
+ renderWeek();
  $("mealTag").textContent="→ "+curMeal;
  const sb=$("scanBtn");const sb2=sb.cloneNode(true);sb.parentNode.replaceChild(sb2,sb);
  sb2.addEventListener("click",openScanner);
@@ -1871,8 +1888,9 @@ $("scanClose").addEventListener("click",closeScanner);
 var _smb=$("scanManualBtn");if(_smb)_smb.addEventListener("click",useManualBarcode);
 var _fbs=$("dFbSend");if(_fbs)_fbs.addEventListener("click",function(){var el=$("dFbNote");var t=(el&&el.value||"").trim();var fb=state.dad.fb||(state.dad.fb={joints:false,time:false,note:"",diff:"",ts:0});fb.note=t;fb.ts=Date.now();state.dad.fbLog=([{t:t,at:new Date().toISOString(),diff:fb.diff||"",joints:!!fb.joints,time:!!fb.time}].concat(state.dad.fbLog||[])).slice(0,20);if(el)el.value="";scheduleSave();render();toast(t?"Coach got your note ✓":"Saved ✓");});
 $("scanAI").addEventListener("click",scanTeach);
-var _pc=$("prepCopy");if(_pc)_pc.addEventListener("click",copyPrepList);
-var _pcl=$("prepClear");if(_pcl)_pcl.addEventListener("click",function(){state.dad.prepSel=[];scheduleSave();renderMealIdeas();toast("Prep list cleared");});
+var _pc=$("prepCopy");if(_pc)_pc.addEventListener("click",copyPlan);
+var _pcl=$("prepClear");if(_pcl)_pcl.addEventListener("click",function(){state.dad.prepSel=[];scheduleSave();renderMealIdeas();renderWeek();toast("Selections cleared");});
+var _wr=$("weekRefresh");if(_wr)_wr.addEventListener("click",function(){renderWeek();toast("Week rebuilt");});
 
 /* ============ BACKUP / RESTORE ============ */
 function exportBackup(){
