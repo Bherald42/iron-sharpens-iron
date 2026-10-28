@@ -1217,6 +1217,7 @@ const NTIPS=[
 "A rough meal never ruins a cut. The NEXT meal decides everything — go green immediately."];
 
 let curMeal="Breakfast",foodQ="";
+var offTimer=null,offSeq=0,offCache={};
 
 
 /* ============ STATE ============ */
@@ -1922,31 +1923,72 @@ function scanTeach(){
  addFoodEntry(rec[0],rec[1],rec[2],rec[3],rec[4],rec[5]);
  closeScanner();toast("Saved — next scan logs it in one tap 📷");
 }
+function foodResRow(f){
+ const el=document.createElement("div");el.className="fres";
+ el.innerHTML='<span class="dot"></span><div class="fn2"><span></span><small></small></div><button class="half">＋½</button><div class="fc2"><span></span><small></small></div>';
+ el.querySelector(".dot").classList.add(f[5]||"y");
+ el.querySelector(".fn2 span").textContent=f[0];
+ el.querySelector(".fn2 small").textContent=f[1];
+ el.querySelector(".fc2 span").textContent=f[2]+" cal";
+ el.querySelector(".fc2 small").textContent=f[3]+"g pro · "+f[4]+"g sug";
+ el.addEventListener("click",()=>addFoodEntry(f[0]+" ("+f[1]+")",f[2],f[3],f[4],f[5],f[6]));
+ el.querySelector(".half").addEventListener("click",ev=>{ev.stopPropagation();addFoodEntry(f[0]+" (½ "+f[1]+")",f[2]/2,f[3]/2,f[4]/2,f[5],f[6]);});
+ return el;
+}
+function offToItem(pr){
+ var n=pr.nutriments||{};
+ var name=(pr.product_name||pr.product_name_en||"").trim();if(!name)return null;
+ var brand=((pr.brands||"").split(",")[0]||"").trim();
+ var full=(brand&&name.toLowerCase().indexOf(brand.toLowerCase())<0)?(brand+" "+name):name;full=full.trim();
+ var perServing=(n["energy-kcal_serving"]!=null);
+ var cal=perServing?n["energy-kcal_serving"]:n["energy-kcal_100g"];
+ if(cal==null||isNaN(Number(cal)))return null;
+ var prot=perServing?n["proteins_serving"]:n["proteins_100g"];
+ var sug=perServing?n["sugars_serving"]:n["sugars_100g"];
+ var serv=perServing?((pr.serving_size||"1 serving").trim()):"per 100g";
+ if(serv.length>24)serv=serv.slice(0,24);
+ var grade=(Number(sug)||0)>15?"r":"y";
+ return [full,serv,Math.round(Number(cal)),Math.round(Number(prot)||0),Math.round(Number(sug)||0),grade,""];
+}
+function searchOFF(q){
+ var key=q.toLowerCase();
+ if(offCache[key])return Promise.resolve(offCache[key]);
+ var url="https://world.openfoodfacts.org/cgi/search.pl?search_terms="+encodeURIComponent(q)+"&search_simple=1&action=process&json=1&page_size=30&sort_by=unique_scans_n&fields=product_name,brands,serving_size,nutriments,code";
+ var ac=new AbortController();var t=setTimeout(function(){ac.abort();},8000);
+ return fetch(url,{signal:ac.signal,headers:{"Accept":"application/json"}}).then(function(r){clearTimeout(t);return r.json();}).then(function(d){
+  var prods=(d&&d.products)||[];var out=[];
+  prods.forEach(function(pr){var it=offToItem(pr);if(it)out.push(it);});
+  offCache[key]=out;return out;
+ }).catch(function(){clearTimeout(t);return null;});
+}
 function renderFoodResults(){
  const box=$("foodResults");box.innerHTML="";
- const ai=$("aiEst");
+ const ai=$("aiEst");if(ai)ai.classList.add("hidden");
+ if(offTimer){clearTimeout(offTimer);offTimer=null;}
  const q=foodQ.trim().toLowerCase();
- if(q.length<2){ai.classList.add("hidden");return;}
+ if(q.length<2)return;
  const toks=q.split(/\s+/);
  const hits=FOODS.filter(f=>toks.every(t=>f[0].toLowerCase().includes(t))).slice(0,8);
- hits.forEach(f=>{
-  const el=document.createElement("div");el.className="fres";
-  el.innerHTML='<span class="dot"></span><div class="fn2"><span></span><small></small></div><button class="half">＋½</button><div class="fc2"><span></span><small></small></div>';
-  el.querySelector(".dot").classList.add(f[5]||"y");
-  el.querySelector(".fn2 span").textContent=f[0];
-  el.querySelector(".fn2 small").textContent=f[1];
-  el.querySelector(".fc2 span").textContent=f[2]+" cal";
-  el.querySelector(".fc2 small").textContent=f[3]+"g pro · "+f[4]+"g sug";
-  el.addEventListener("click",()=>addFoodEntry(f[0]+" ("+f[1]+")",f[2],f[3],f[4],f[5],f[6]));
-  el.querySelector(".half").addEventListener("click",ev=>{ev.stopPropagation();addFoodEntry(f[0]+" (½ "+f[1]+")",f[2]/2,f[3]/2,f[4]/2,f[5],f[6]);});
-  box.appendChild(el);
- });
- const ab=ai.cloneNode(true);ai.parentNode.replaceChild(ab,ai);
- if(false){
-  ab.classList.remove("hidden");
-  ab.textContent='🧠 Ask Coach to estimate "'+foodQ.trim()+'"';
-  ab.addEventListener("click",()=>aiEstimateFood(ab));
- } else ab.classList.add("hidden");
+ hits.forEach(f=>box.appendChild(foodResRow(f)));
+ const seen={};hits.forEach(h=>seen[h[0].toLowerCase()]=1);
+ const status=document.createElement("div");status.className="muted";status.style.margin="10px 2px 2px";status.style.fontSize="13px";status.textContent="🔎 Searching the full food database…";
+ box.appendChild(status);
+ const seq=++offSeq;const qExact=foodQ.trim();
+ offTimer=setTimeout(function(){
+  searchOFF(qExact).then(function(items){
+   if(seq!==offSeq)return;
+   status.remove();
+   var shown=0;
+   if(items&&items.length){
+    var hdr=document.createElement("div");hdr.className="muted";hdr.style.margin="12px 2px 4px";hdr.style.fontSize="13px";hdr.textContent="📦 More from the food database";box.appendChild(hdr);
+    items.forEach(function(f){var k=f[0].toLowerCase();if(seen[k]||shown>=24)return;seen[k]=1;box.appendChild(foodResRow(f));shown++;});
+    if(!shown)hdr.remove();
+   }
+   if(!hits.length&&!shown){
+    var none=document.createElement("div");none.className="muted";none.style.margin="10px 2px";none.textContent='No match for “'+qExact+'” — log it as custom below, or scan the barcode.';box.appendChild(none);
+   }
+  }).catch(function(){ if(seq!==offSeq)return; status.textContent="Couldn’t reach the food database — showing built-in foods only."; });
+ },350);
 }
 async function aiEstimateFood(btn){
  btn.textContent="🧠 Estimating…";
