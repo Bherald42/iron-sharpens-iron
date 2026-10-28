@@ -56,6 +56,7 @@ a{color:var(--sky)}
 input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:999px;background:var(--panel2);outline:none;border:1px solid var(--line)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;border-radius:50%;background:var(--gold);cursor:pointer;border:none}
 input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--gold);cursor:pointer;border:none}
+.path .pdate{font-size:12px;color:var(--gold);margin-top:3px;font-weight:800}
 
 /* Header */
 .top{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 0}
@@ -434,16 +435,6 @@ input,button{font-size:16px} /* prevent iOS zoom */
       </div>
 
       <div class="card">
-        <div class="plan-head"><h2>📆 Goal Projection</h2><span class="tag gold" id="pjDate"></span></div>
-        <div class="muted" id="pjSummary" style="margin-top:6px"></div>
-        <input type="range" id="pjRate" min="0.5" max="3" step="0.25" value="1.5" style="width:100%;margin-top:12px">
-        <div class="muted" id="pjRateLbl" style="text-align:center;margin-top:2px"></div>
-        <div class="muted" id="pjFeedback" style="margin-top:8px;line-height:1.5"></div>
-        <div class="muted" id="pjApplied" style="margin-top:8px;font-size:12.5px"></div>
-        <button class="bigbtn" id="pjApply" style="margin-top:8px">Set my targets to this pace</button>
-      </div>
-
-      <div class="card">
         <div class="plan-head"><h2 id="dPlanTitle"></h2><span class="tag" id="dPlanTag"></span></div>
         <div class="muted" id="dPlanSub"></div>
         <div id="dDrillList"></div>
@@ -549,8 +540,17 @@ input,button{font-size:16px} /* prevent iOS zoom */
 
     <section id="d-plan" class="hidden">
       <div class="card">
+        <div class="plan-head"><h2>📆 Goal Projection</h2><span class="tag gold" id="pjDate"></span></div>
+        <div class="muted" id="pjSummary" style="margin-top:6px"></div>
+        <input type="range" id="pjRate" min="0.5" max="3" step="0.25" value="1.5" style="width:100%;margin-top:12px">
+        <div class="muted" id="pjRateLbl" style="text-align:center;margin-top:2px"></div>
+        <div class="muted" id="pjFeedback" style="margin-top:8px;line-height:1.5"></div>
+        <div class="muted" id="pjApplied" style="margin-top:8px;font-size:12.5px"></div>
+        <button class="bigbtn" id="pjApply" style="margin-top:8px">Set my targets to this pace</button>
+      </div>
+      <div class="card">
         <h2>🛣️ Your Path to the Pig</h2>
-        <div class="muted" style="margin-top:4px">Tap your current phase.</div>
+        <div class="muted" style="margin-top:4px">Dates projected from your weigh-in + the pace slider above. Tap a phase to mark where you are.</div>
         <div class="path" id="pathList"></div>
       </div>
       <div class="card">
@@ -936,7 +936,7 @@ function dadPlanToday(){
  return plan;
 }
 
-const PATH=[["Start line","Daily habit + low-carb — the weight starts moving"],["First 15 lbs down","Lighter on your feet already"],["Run/walk 30 min nonstop","Base engine built"],["5K without stopping","You're a runner now"],["10K strong","Half-race shape — and 175 in sight"],["Flying Pig 3-Way 🐷","5K + 10K + Half over Pig weekend — May"]];
+const PATH=[["Start line","Move every day + low carb"],["First 10 lbs down","The hardest part is behind you"],["Halfway to 175","Clothes fit different, energy climbs"],["Hit 175 lbs","Goal weight — then carve the abs"],["Six-pack visible","A few lbs leaner — the abs show"],["Flying Pig 3-Way","5K + 10K + Half over Pig weekend"]];
 const RACES=[
 ["Flying Pig 3-Way ⭐ your goal","Cincinnati · Pig weekend, early May · 5K + 10K + Half","Challenge"],
 ["Flying Pig Marathon & Half","Cincinnati · typically early May","Marathon / Half"],
@@ -1470,7 +1470,6 @@ function renderDadToday(){
  $("filmTopicD").textContent="This week: "+fd[0];$("filmLookD").textContent="👀 Look for: "+fd[1];$("filmLinkD").href=yt(fd[2]);
  const fdd=!!(state.dad.film&&state.dad.film.wk===wk&&state.dad.film.done);
  wire("filmBtnD",fdd,"Studied it","Film studied ✓",()=>{const was=!!(state.dad.film&&state.dad.film.wk===wk&&state.dad.film.done);state.dad.film={wk:wk,done:!was};scheduleSave();render();});
- renderProjection();
  renderFeedback();
  renderCheckin("d",e);
 }
@@ -1729,13 +1728,26 @@ function renderFeedback(){
  if(echo){const lvl=Number(state.dad.lvl)||0;
   echo.textContent=(lvl!==0?("Intensity: "+(lvl>0?"+"+lvl:lvl)+" vs baseline. "):"")+(fb.note?("Last note: “"+fb.note+"”"):"Your notes go to Claude — I read them and fine-tune the plan.");}
 }
+function pjMilestoneDate(i,cur,rate){
+ if(i===0)return "now";
+ if(i===5)return "early May 2027";
+ var target=(i===1)?cur-10:(i===2)?Math.round((cur+175)/2):(i===3)?175:168;
+ var lbs=Math.round((cur-target)*10)/10;
+ if(lbs<=0)return "reached \u2713";
+ var weeks=Math.ceil(lbs/rate);
+ return pjFmtDate(new Date(Date.now()+weeks*7*86400000));
+}
 function renderDadPlan(){
+ renderProjection();
+ var _c=(state.dad.weights&&state.dad.weights.length)?Number(state.dad.weights[state.dad.weights.length-1].w):227;
+ var _r=Number(state.dad.goalRate)||1.5;
  const pl=$("pathList");pl.innerHTML="";
  PATH.forEach((p,i)=>{
   const el=document.createElement("div");el.className="pstep"+(i<=state.dad.phase?" on":"");
-  el.innerHTML='<div class="dot"></div><div class="pl"><div class="pn"></div><div class="pd"></div></div>';
+  el.innerHTML='<div class="dot"></div><div class="pl"><div class="pn"></div><div class="pd"></div><div class="pdate"></div></div>';
   el.querySelector(".pn").textContent=(i<=state.dad.phase?"● ":"")+p[0];
   el.querySelector(".pd").textContent=p[1];
+  el.querySelector(".pdate").textContent="\ud83d\udcc6 "+pjMilestoneDate(i,_c,_r);
   el.style.cursor="pointer";
   el.addEventListener("click",()=>{state.dad.phase=i;scheduleSave();render();toast("Phase: "+p[0]);});
   pl.appendChild(el);
@@ -1758,7 +1770,7 @@ function renderDadPlan(){
 $("introIx").addEventListener("click",()=>{state.isaac.intro=true;scheduleSave();render();});
 $("introDx").addEventListener("click",()=>{state.dad.intro=true;scheduleSave();render();});
 var _gn=$("gNext");if(_gn)_gn.addEventListener("click",function(){growIdx=(growIdx<0?doy()%BIZLEAD.length:growIdx)+1;renderGrow();});
-var _pjr=$("pjRate");if(_pjr)_pjr.addEventListener("input",function(){state.dad.goalRate=Number(this.value)||1.5;renderProjection();scheduleSave();});
+var _pjr=$("pjRate");if(_pjr)_pjr.addEventListener("input",function(){state.dad.goalRate=Number(this.value)||1.5;renderDadPlan();scheduleSave();});
 var _pja=$("pjApply");if(_pja)_pja.addEventListener("click",function(){var c=pjCalc();state.dad.calTarget=c.target;var msg="Calorie target set to "+c.target+"/day.";if(c.rate>=2){state.dad.lvl=Math.min(8,(Number(state.dad.lvl)||0)+1);msg+=" Workout bumped up for the faster pace.";}scheduleSave();render();toast(msg);});
 $("scanClose").addEventListener("click",closeScanner);
 var _smb=$("scanManualBtn");if(_smb)_smb.addEventListener("click",useManualBarcode);
@@ -1813,6 +1825,6 @@ try{renderLaunch();}catch(e){}
 initStorage();
 })();
 </script>
-<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
+<script>if("serviceWorker" in navigator){addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});var _refreshing=false;navigator.serviceWorker.addEventListener("controllerchange",function(){if(_refreshing)return;_refreshing=true;location.reload();});}</script>
 </body>
 </html>
