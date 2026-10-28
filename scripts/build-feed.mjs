@@ -8,14 +8,22 @@ const GNtopic  = t => `https://news.google.com/rss/headlines/section/topic/${t}?
 const YT       = id => `https://www.youtube.com/feeds/videos.xml?channel_id=${id}`;
 
 const SOURCES = [
+  // Local
   { category:'local',  kind:'article', limit:14, url: GNsearch('Cincinnati OR "Greater Cincinnati"') },
-  { category:'us',     kind:'article', limit:14, url: GNtopic('NATION') },
-  { category:'world',  kind:'article', limit:14, url: GNtopic('WORLD') },
+  // US (image-rich outlets + Google News for source diversity)
+  { category:'us',     kind:'article', limit:8,  url: 'https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml' },
+  { category:'us',     kind:'article', limit:8,  url: 'https://feeds.npr.org/1003/rss.xml' },
+  { category:'us',     kind:'article', limit:8,  url: 'https://rss.nytimes.com/services/xml/rss/nyt/US.xml' },
+  { category:'us',     kind:'article', limit:10, url: GNtopic('NATION') },
+  // World
+  { category:'world',  kind:'article', limit:8,  url: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
+  { category:'world',  kind:'article', limit:8,  url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml' },
+  { category:'world',  kind:'article', limit:8,  url: 'https://feeds.npr.org/1004/rss.xml' },
+  { category:'world',  kind:'article', limit:10, url: GNtopic('WORLD') },
+  // Tools / tech (image-rich)
   { category:'tech',   kind:'article', limit:8,  url: 'https://www.theverge.com/rss/index.xml' },
   { category:'tech',   kind:'article', limit:8,  url: 'https://feeds.arstechnica.com/arstechnica/technology-lab' },
-  { category:'tech',   kind:'article', limit:8,  url: GNtopic('TECHNOLOGY') },
-  { category:'videos', kind:'video',   limit:6,  url: YT('UCAuUUnT6oDeKwE6v1NGQxug') }, // TED
-  { category:'videos', kind:'video',   limit:6,  url: YT('UCsT0YIqwnpJCM-mx7-gSA4Q') }, // TEDx Talks
+  { category:'tech',   kind:'article', limit:8,  url: 'https://techcrunch.com/feed/' },
 ];
 
 function splitTitle(t){ const i=t.lastIndexOf(' - '); return i>20 ? {title:t.slice(0,i).trim(), src:t.slice(i+3).trim()} : {title:t.trim(), src:''}; }
