@@ -1016,6 +1016,18 @@ function dadPlanToday(){
  if(w&&w.length>=3){const rr=w.slice(-3);const drop=rr[0].w-rr[rr.length-1].w;
   if(drop<=0.2)tune=(tune?tune+" ":"")+"📉 Scale's stalled — tighten the low-carb today (zero starch) and add 10 min easy cardio.";}
  if(fb.time){plan={...plan,d:plan.d.slice(0,Math.min(3,plan.d.length))};tune=(tune?tune+" ":"")+"⏱️ Short on time — trimmed to the essentials.";}
+ // Muscle retention during the sprint: keep a resistance touch on the easy cardio days so the cut
+ // drops fat, not muscle (protects against loose skin). Added AFTER the time-trim so it's never cut.
+ var inSprint=!!(pushCalc().next);
+ if(inSprint&&(key==="run"||key==="bike")){
+  var saver=fb.joints?
+   [["Muscle-saver: incline wall push-ups + goblet squat","2 × 10 each","Keeps muscle on during the cut — light and joint-friendly."]]:
+   [["Muscle-saver: goblet squat + one-arm row","2 × 10 each","Two quick dumbbell sets so the sprint burns fat, not muscle — keeps the skin tight."],
+    ["Farmer carry","2 × 30 sec","Walk tall with both bells — grip, core, posture."]];
+  if(fb.time)saver=saver.slice(0,1);
+  plan={...plan,d:plan.d.concat(saver)};
+  tune=(tune?tune+" ":"")+"💪 Muscle-saver added — resistance work stays in so you lean out without going soft.";
+ }
  if(tune)plan={...plan,sub:"Today's tune-up: "+tune+" · "+plan.sub};
  return plan;
 }
