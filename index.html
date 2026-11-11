@@ -467,12 +467,25 @@ input,button{font-size:16px} /* prevent iOS zoom */
         <div class="coachmsg" id="coachMsgD"></div>
       </div>
 
+      <div class="card" id="adaptCard" style="display:none;border-color:rgba(245,197,66,.5)">
+        <div class="plan-head"><h2>⚙️ Today's Auto-Adjust</h2><span class="tag gold" id="adaptTag"></span></div>
+        <div class="muted" id="adaptLine" style="margin-top:6px;line-height:1.6"></div>
+        <button class="mini" id="adaptToggle" style="margin-top:8px"></button>
+      </div>
+
       <div class="card">
         <div class="plan-head"><h2 id="dPlanTitle"></h2><span class="tag" id="dPlanTag"></span></div>
         <div class="muted" id="dPlanSub"></div>
         <div id="dDrillList"></div>
         <div class="bonus" id="dBonusLine"></div>
         <button class="mini hidden" id="dPartial" style="margin:10px auto 0;display:block">Life happened — count today anyway</button>
+      </div>
+
+      <div class="card" id="pmCard" style="display:none;border-color:rgba(99,179,237,.5)">
+        <div class="plan-head"><h2 id="pmTitle">🌙 Two-a-Day · PM Session</h2><span class="tag" id="pmTag">optional burn</span></div>
+        <div class="muted" id="pmSub" style="margin-top:4px"></div>
+        <div id="pmDrillList"></div>
+        <div class="bonus" id="pmBonusLine" style="margin-top:8px"></div>
       </div>
 
       <div class="card">
@@ -531,6 +544,7 @@ input,button{font-size:16px} /* prevent iOS zoom */
 
       <div class="card">
         <div class="plan-head"><h2>🍽️ Food Diary</h2><button class="mini" id="calEdit">target: <span id="calTarget">2000</span> cal</button></div>
+        <div class="muted" id="adaptFood" style="display:none;margin:6px 0 2px;line-height:1.55;color:var(--gold)"></div>
         <div class="calbar" id="calBar"><i></i></div>
         <div class="muted" style="margin-top:6px" id="calSummary"></div>
         <div class="calbar prot" id="protBar"><i></i></div>
@@ -1379,6 +1393,55 @@ function pushCalc(){
  }
  return {cur:cur,legs:legs,next:next,rec:rec,estMaint:estMaint};
 }
+function wTrend(){
+ var ws=(state.dad.weights||[]).map(function(x){return {t:new Date(x.d+"T00:00:00"),w:Number(x.w)};}).filter(function(p){return !isNaN(p.w)&&p.t&&!isNaN(p.t.getTime());});
+ if(ws.length<2)return null;
+ ws.sort(function(a,b){return a.t-b.t;});
+ var today=new Date();today.setHours(0,0,0,0);
+ var cut=new Date(today.getTime()-21*86400000);
+ var win=ws.filter(function(p){return p.t>=cut;});
+ if(win.length<2)win=ws.slice(-2);
+ var first=win[0],lastp=win[win.length-1];
+ var days=(lastp.t-first.t)/86400000;
+ if(days<1)return null;
+ return {rate:Math.round(((first.w-lastp.w)/(days/7))*100)/100,days:Math.round(days),from:first.w,to:lastp.w,n:win.length};
+}
+function adaptEngine(){
+ var p=pushCalc();
+ var inPush=!!(p.next&&p.rec);
+ var sustain=pjCalc().target;
+ var base=inPush?Math.min(p.rec.target,sustain):sustain;
+ var need=inPush?p.rec.needRate:(Number(state.dad.goalRate)||1.5);
+ var goalLbl=inPush?(p.next.targetW+" lb goal"):"175-lb plan";
+ var tr=wTrend();
+ var out={inPush:inPush,need:Math.round(need*10)/10,base:base,trend:tr,target:base,delta:0,status:"nodata",twoADay:false,why:""};
+ if(!tr){out.why="Log a couple of weigh-ins and I’ll auto-tune your calories and training to the pace.";return out;}
+ var gap=Math.round((need-tr.rate)*10)/10;out.gap=gap;
+ if(gap>0.4){
+  var cut2=Math.min(300,Math.round(gap*250/50)*50);
+  out.target=Math.max(1700,base-cut2);out.delta=out.target-base;out.status="behind";out.twoADay=true;
+  out.why="Scale’s moving "+tr.rate+" lb/wk but the "+goalLbl+" needs ~"+out.need+". Trimmed calories"+(out.target<=1700?" to the safe 1700 floor":(" by "+Math.abs(out.delta)))+" and added a PM cardio burn to close the gap.";
+ } else if(gap<-0.75){
+  var ceil=Math.max(base,p.estMaint-250);
+  out.target=Math.min(base+150,ceil);out.delta=out.target-base;out.status="ahead";
+  out.why="You’re dropping "+tr.rate+" lb/wk — faster than the ~"+out.need+" you need. "+(out.delta>0?("Nudged calories up "+out.delta+" to protect muscle for the six-pack + marathon."):("Holding at a steady deficit to protect muscle for the six-pack + marathon."))+" No second session needed.";
+ } else {
+  out.target=base;out.status="on";
+  out.why="On pace — losing "+tr.rate+" lb/wk vs the ~"+out.need+" target. Holding calories at "+base+". Keep stacking days.";
+ }
+ return out;
+}
+function pmSession(){
+ var fb=state.dad.fb||{};var ye=state.dad.history[ydayKey()];
+ if(ye&&ye.energy===1)return {skip:true,sub:"You flagged low energy yesterday — skip the PM session today. Recovery is what makes the AM work stick."};
+ var lowImp=!!fb.joints;
+ var d=lowImp?[
+  ["PM easy bike","30–40 min steady","Low-impact zone 2 — conversational pace. Pure fat-burn, saves the joints."],
+  ["Cooldown walk","5 min","Flush the legs."]]:[
+  ["PM easy run/walk or bike","30–40 min zone 2","Conversational pace — you can talk the whole time. This is the fat-burn session, not a grind."],
+  ["Incline walk finisher","5–10 min","Treadmill incline, easy. Extra burn, zero pounding."]];
+ return {skip:false,lowImp:lowImp,d:d,sub:"Extra deficit to stay on the push line. Keep it EASY — the AM session was the hard one; this is just more fat-burning time on feet."};
+}
 function renderPush(){
  if(!$("pushLegs"))return;
  var p=pushCalc();var ap=$("pushApply");
@@ -1675,6 +1738,7 @@ function renderTrophies(){
 function renderDad(){
  ["today","food","cal","plan","grow"].forEach(t=>$("d-"+t).classList.toggle("hidden",t!==tab));
  const ws=state.dad.weights;const last=ws[ws.length-1];
+ if(state.dad.autoAdjust!==false){var _ae=adaptEngine();if(_ae.status!=="nodata"&&_ae.target&&state.dad.calTarget!==_ae.target){state.dad.calTarget=_ae.target;scheduleSave();}}
  $("dWeight").textContent=last?last.w:"—";
  $("dLost").textContent=Math.max(0,Math.round((227-(last?last.w:227))*10)/10);
  const st=streak(dActive);if(st>state.dad.bestStreak)state.dad.bestStreak=st;
@@ -1728,6 +1792,7 @@ function renderDadToday(){
  $("cruiseDays").textContent=toGo>0?toGo+" lb to go":"at goal 🎉";
  $("cruiseLine").textContent=toGo>0?("Lose weight to 175 first, then chase a sub-3 marathon (~6:50/mi) at the Flying Pig 4-Way next May. "+toGo+" lb to go — low-carb + daily cardio is your formula, and every pound you drop is free speed. Aim ~1–2 lb/week while the base builds."):("🎉 At 175! Now it's all about the 4-Way — keep building those long run/walks.");
  $("coachMsgD").textContent="🎙️ Coach: "+COACHD[doy()%COACHD.length];
+ renderAdaptToday(e);
  const nl2=$("dNutList");nl2.innerHTML="";
  DNUT.forEach((f,i)=>{
   const done=e.nut.includes(i);
@@ -1801,6 +1866,40 @@ function buildPlanText(){
  return out.join("\n");
 }
 function copyPlan(){var txt=buildPlanText();if(!txt){toast("Add some meals first");return;}function ok(){toast("Plan copied — paste it to share ✓");}function fb(){try{var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.focus();ta.select();var g=document.execCommand("copy");ta.remove();if(g)ok();else window.prompt("Copy your meal plan:",txt);}catch(e){window.prompt("Copy your meal plan:",txt);}}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok).catch(fb);}else fb();}
+function renderAdaptToday(e){
+ var ae=adaptEngine();
+ var ac=$("adaptCard");
+ if(ac){
+  if(ae.status==="nodata"){ac.style.display="none";}
+  else{ac.style.display="";
+   $("adaptTag").textContent=ae.status==="behind"?"behind pace":ae.status==="ahead"?"ahead — ease up":"on pace";
+   $("adaptLine").innerHTML=(ae.status==="behind"?"🛑 ":ae.status==="ahead"?"🟢 ":"✅ ")+ae.why+" <b>Target now "+state.dad.calTarget+" cal/day.</b>";
+  }
+  var tg=$("adaptToggle");
+  if(tg){var on=state.dad.autoAdjust!==false;tg.textContent=on?"Auto-adjust: ON — tap to pause":"Auto-adjust: OFF — tap to resume";}
+ }
+ var pc=$("pmCard");
+ if(pc){
+  if(ae.twoADay){
+   pc.style.display="";var pm=pmSession();
+   if(pm.skip){$("pmTag").textContent="rest instead";$("pmSub").textContent=pm.sub;$("pmDrillList").innerHTML="";$("pmBonusLine").textContent="";}
+   else{
+    $("pmTag").textContent=pm.lowImp?"joint-friendly":"easy cardio";$("pmSub").textContent=pm.sub;
+    e.pm=e.pm||[];var pl=$("pmDrillList");pl.innerHTML="";
+    pm.d.forEach(function(d,i){
+     var done=e.pm.indexOf(i)>=0;
+     var el=document.createElement("div");el.className="drill"+(done?" done":"");
+     el.innerHTML='<div class="box">'+(done?"✓":"")+'</div><div class="txt"><div class="name"></div><div class="reps"></div><div class="how"></div></div>';
+     el.querySelector(".name").textContent=d[0];el.querySelector(".reps").textContent=d[1];
+     if(d[2]){var h=el.querySelector(".how");h.textContent=d[2];h.style.display="block";}
+     el.addEventListener("click",function(){var idx=e.pm.indexOf(i);if(idx>=0)e.pm.splice(idx,1);else e.pm.push(i);scheduleSave();render();});
+     pl.appendChild(el);
+    });
+    $("pmBonusLine").textContent=(e.pm.length>=pm.d.length)?"✅ Two-a-day complete — that’s how you buy back the gap.":"Optional, but it’s the fastest clean way to hit the date.";
+   }
+  } else pc.style.display="none";
+ }
+}
 function renderDadFood(){
  const items=todayFood();
  const total=items.reduce((a,b)=>a+(Number(b.cal)||0),0);
@@ -1821,6 +1920,8 @@ function renderDadFood(){
  $("vegN").textContent=veg+"/4";$("fruitN").textContent=fru+"/2";
  $("qualN").textContent=total?(gcal/total>=0.6?"A":gcal/total>=0.4?"B":"C"):"—";
  $("nTip").textContent="🎙️ "+NTIPS[doy()%NTIPS.length];
+ var _aef=adaptEngine();var _af=$("adaptFood");
+ if(_af){if(_aef.status==="nodata"){_af.style.display="none";}else{_af.style.display="";_af.innerHTML="⚙️ Auto-adjusted from your weigh-ins: "+(_aef.delta<0?("−"+Math.abs(_aef.delta)+" cal · behind pace, +PM cardio"):_aef.delta>0?("+"+_aef.delta+" cal · ahead, protecting muscle"):"on pace")+". Today’s target <b>"+state.dad.calTarget+" cal</b>.";}}
  const ce=$("calEdit");const ce2=ce.cloneNode(true);ce.parentNode.replaceChild(ce2,ce);
  ce2.addEventListener("click",()=>{const v=prompt("Daily calorie target?",state.dad.calTarget);const n=parseInt(v,10);if(n&&n>1200&&n<6000){state.dad.calTarget=n;scheduleSave();render();}});
  // meal pills
@@ -2308,6 +2409,7 @@ $("introIx").addEventListener("click",()=>{state.isaac.intro=true;scheduleSave()
 $("introDx").addEventListener("click",()=>{state.dad.intro=true;scheduleSave();render();});
 var _gn=$("gNext");if(_gn)_gn.addEventListener("click",function(){growIdx=(growIdx<0?doy()%BIZLEAD.length:growIdx)+1;renderGrow();});
 var _pjr=$("pjRate");if(_pjr)_pjr.addEventListener("input",function(){state.dad.goalRate=Number(this.value)||1.5;renderDadPlan();scheduleSave();});
+var _at=$("adaptToggle");if(_at)_at.addEventListener("click",function(){state.dad.autoAdjust=(state.dad.autoAdjust===false);scheduleSave();render();toast(state.dad.autoAdjust===false?"Auto-adjust paused — targets stay put":"Auto-adjust on — tuning to your weigh-ins ⚡");});
 var _pua=$("pushApply");if(_pua)_pua.addEventListener("click",function(){var p=pushCalc();if(!p.rec){toast("You’re on controlled loss — use the slider below");return;}state.dad.calTarget=p.rec.target;scheduleSave();render();toast("Target set to "+p.rec.target+"/day for the push ⚡");});
 var _pja=$("pjApply");if(_pja)_pja.addEventListener("click",function(){var c=pjCalc();state.dad.calTarget=c.target;var msg="Calorie target set to "+c.target+"/day.";if(c.rate>=2){state.dad.lvl=Math.min(8,(Number(state.dad.lvl)||0)+1);msg+=" Workout bumped up for the faster pace.";}scheduleSave();render();toast(msg);});
 $("scanClose").addEventListener("click",closeScanner);
