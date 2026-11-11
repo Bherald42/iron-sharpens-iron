@@ -586,6 +586,14 @@ input,button{font-size:16px} /* prevent iOS zoom */
     </section>
 
     <section id="d-plan" class="hidden">
+      <div class="card" id="pushCard">
+        <div class="plan-head"><h2>⚡ Short-Term Push</h2><span class="tag gold" id="pushTag"></span></div>
+        <div class="muted" id="pushLegs" style="margin-top:6px;line-height:1.8"></div>
+        <div class="muted" id="pushRec" style="margin-top:10px;line-height:1.55"></div>
+        <div class="muted" id="pushFeedback" style="margin-top:8px;line-height:1.55"></div>
+        <button class="bigbtn" id="pushApply" style="margin-top:10px">Set my calorie target to the push pace</button>
+        <div class="muted" id="pushNote" style="margin-top:8px;font-size:12.5px"></div>
+      </div>
       <div class="card">
         <div class="plan-head"><h2>📆 Goal Projection</h2><span class="tag gold" id="pjDate"></span></div>
         <div class="muted" id="pjSummary" style="margin-top:6px"></div>
@@ -999,6 +1007,7 @@ function dadPlanToday(){
 }
 
 const PATH=[["Start line","Move every day + low carb"],["First 10 lbs down","The hardest part is behind you"],["Halfway to 175","Clothes fit different, energy climbs"],["Hit 175 lbs","Goal weight — then carve the abs"],["Six-pack visible","A few lbs leaner — the abs show"],["Sub-3 Marathon 🐷","26.2 at the Flying Pig 4-Way · 2:59:59 goal"]];
+const PUSH=[["2026-12-01",215],["2026-12-15",205]];  // short-term dated push, then controlled loss to 175
 const RACES=[
 ["Flying Pig 4-Way ⭐ your goal","Cincinnati · Sat May 1: 5K 7am + 10K 9am · Sun May 2: full marathon","Challenge"],
 ["Flying Pig Marathon & Half","Cincinnati · typically early May","Marathon / Half"],
@@ -1343,6 +1352,60 @@ function renderProjection(){
  if(c.toGo>0)rctx=(c.date<=race)?" You’d reach 175 before the Flying Pig 4-Way — right on track.":" You’d still be cutting at Pig weekend (early May) — totally fine, just run it lighter than today.";
  $("pjFeedback").textContent=fb+rctx;
  $("pjApplied").textContent="Rough est. maintenance ~"+c.estMaint+" cal/day → this pace sets a "+c.target+" cal/day target. (Tap ‘Set my targets’ to apply.)";
+}
+function pushCalc(){
+ var w=state.dad.weights;var cur=(w&&w.length)?Number(w[w.length-1].w):227;
+ var estMaint=Math.round(cur*14/10)*10;
+ var today=new Date();today.setHours(0,0,0,0);
+ var legs=PUSH.map(function(m){
+  var d=new Date(m[0]+"T00:00:00");
+  var days=Math.round((d-today)/86400000);
+  var toLose=Math.round((cur-m[1])*10)/10;
+  return {date:d,dateStr:pjFmtDate(d),targetW:m[1],days:days,toLose:toLose};
+ });
+ var next=null;for(var i=0;i<legs.length;i++){if(legs[i].days>=0&&legs[i].toLose>0){next=legs[i];break;}}
+ var rec=null;
+ if(next&&next.toLose>0){
+  var weeks=Math.max(0.3,next.days/7);
+  var needRate=next.toLose/weeks;
+  var deficit=Math.round(needRate*500);
+  var rawTarget=estMaint-deficit;
+  var target=Math.max(1700,Math.round(rawTarget/50)*50);
+  var floored=rawTarget<1700;
+  var atFloorRate=Math.round(((estMaint-1700)/500)*10)/10;
+  var realDate=null;
+  if(floored&&atFloorRate>0){var wks=Math.ceil(next.toLose/atFloorRate);realDate=new Date(today.getTime()+wks*7*86400000);}
+  rec={needRate:Math.round(needRate*10)/10,deficit:deficit,target:target,floored:floored,atFloorRate:atFloorRate,realDate:realDate,estMaint:estMaint};
+ }
+ return {cur:cur,legs:legs,next:next,rec:rec,estMaint:estMaint};
+}
+function renderPush(){
+ if(!$("pushLegs"))return;
+ var p=pushCalc();var ap=$("pushApply");
+ var lines=p.legs.map(function(L){
+  var status;
+  if(L.toLose<=0)status="✅ reached";
+  else if(L.days<0)status="⏾ date passed · "+L.toLose+" lb short";
+  else status="<b>"+L.toLose+" lb</b> to go · "+L.days+" days";
+  return "🎯 <b>"+L.targetW+" lb</b> by "+L.dateStr.replace(/,( \d+)$/,"")+" — "+status;
+ });
+ $("pushLegs").innerHTML=lines.join("<br>");
+ $("pushNote").textContent="⚖️ Dates compute from your latest weigh-in ("+p.cur+" lb) — log today’s weight in the Fuel tab to keep this honest.";
+ if(!p.next){
+  var allHit=p.legs.every(function(L){return L.toLose<=0;});
+  $("pushTag").textContent=allHit?"ahead 🔥":"controlled loss →";
+  $("pushRec").textContent=allHit?"You’ve already hit both push targets (215 and 205) — ahead of schedule. Shift to controlled loss toward 175 for the Pig using the slider below.":"Both push dates are behind you — you’re back on controlled loss toward 175 for the Pig. Use the pace slider below.";
+  $("pushFeedback").textContent="";if(ap)ap.style.display="none";return;
+ }
+ if(ap)ap.style.display="";
+ var r=p.rec;
+ $("pushTag").textContent="→ "+p.next.targetW+" by "+p.next.dateStr.replace(/,( \d+)$/,"");
+ $("pushRec").innerHTML="Next: lose <b>"+p.next.toLose+" lb</b> in "+p.next.days+" days (~"+r.needRate+" lb/week). That sets a <b>"+r.target+" cal/day</b> target"+(r.floored?" (held at the safe 1700 floor)":"")+" on ~"+r.estMaint+" maintenance — plus daily cardio.";
+ var fb;
+ if(r.needRate<=2) fb="✅ Aggressive but reachable — and the first 1–2 weeks of strict low-carb drop water weight fast, so the scale moves quickest right now. Keep protein ~180g so it’s fat leaving, not muscle.";
+ else if(r.needRate<=3) fb="⚠️ Very aggressive. Strict low-carb + daily cardio can get you close (early loss is largely water), but it’s a short sprint — hold protein high and don’t live here. We never go under 1700 cal.";
+ else fb="🛑 Honest read: "+r.needRate+" lb/week is faster than fat alone comes off — past the first water drop that pace costs muscle you need for the six-pack and the marathon. At the safe 1700-cal floor + hard daily cardio you’d realistically hit "+p.next.targetW+" around "+(r.realDate?pjFmtDate(r.realDate):"a bit later")+". I’ve set the hardest safe target — close the gap with cardio, not starvation.";
+ $("pushFeedback").textContent=fb;
 }
 var growIdx=-1;
 function renderGrow(){
@@ -2211,6 +2274,7 @@ function renderDadGrow(){
  feedPool=gshuffle(feedItems(feedCat));feedCount=12;renderFeed();
 }
 function renderDadPlan(){
+ renderPush();
  renderProjection();
  var _c=(state.dad.weights&&state.dad.weights.length)?Number(state.dad.weights[state.dad.weights.length-1].w):227;
  var _r=Number(state.dad.goalRate)||1.5;
@@ -2244,6 +2308,7 @@ $("introIx").addEventListener("click",()=>{state.isaac.intro=true;scheduleSave()
 $("introDx").addEventListener("click",()=>{state.dad.intro=true;scheduleSave();render();});
 var _gn=$("gNext");if(_gn)_gn.addEventListener("click",function(){growIdx=(growIdx<0?doy()%BIZLEAD.length:growIdx)+1;renderGrow();});
 var _pjr=$("pjRate");if(_pjr)_pjr.addEventListener("input",function(){state.dad.goalRate=Number(this.value)||1.5;renderDadPlan();scheduleSave();});
+var _pua=$("pushApply");if(_pua)_pua.addEventListener("click",function(){var p=pushCalc();if(!p.rec){toast("You’re on controlled loss — use the slider below");return;}state.dad.calTarget=p.rec.target;scheduleSave();render();toast("Target set to "+p.rec.target+"/day for the push ⚡");});
 var _pja=$("pjApply");if(_pja)_pja.addEventListener("click",function(){var c=pjCalc();state.dad.calTarget=c.target;var msg="Calorie target set to "+c.target+"/day.";if(c.rate>=2){state.dad.lvl=Math.min(8,(Number(state.dad.lvl)||0)+1);msg+=" Workout bumped up for the faster pace.";}scheduleSave();render();toast(msg);});
 $("scanClose").addEventListener("click",closeScanner);
 var _smb=$("scanManualBtn");if(_smb)_smb.addEventListener("click",useManualBarcode);
